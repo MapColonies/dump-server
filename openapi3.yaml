@@ -36,6 +36,13 @@ paths:
             type: string
             format: date
           description: The date to fetch dumps until
+        - in: query
+          name: sort
+          description: Date sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
       responses:
         200:
           description: OK
