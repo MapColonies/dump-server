@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
-  title: service-name
-  description: basic template for map colonies service
+  title: dump-server
+  description: A restful API for querying osm planet dumps
   version: 1.0.0
   license:
     name: MIT
@@ -9,38 +9,85 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
-  /resourceName:
+  /dumps:
     get:
-      operationId: getResourceName
+      operationId: getDumpsByQuery
       tags:
-        - resourceName
-      summary: gets the resource
+        - dump
+      summary: Get dumps by query
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            minimum: 0
+            maximum: 100
+          description: The number of dumps to return
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          description: The date to fetch dumps from
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          description: The date to fetch dumps until
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/resource'
-    post:
-      operationId: createResource
-      tags:
-        - resourceName
-      summary: creates a new record of type resource
-      responses:
-        201:
-          description: created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/resource'
+                type: array
+                items:
+                  $ref: '#/components/schemas/dump'
         400:
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+  /dumps/{dumpId}:
+    get:
+      operationId: getDumpById
+      tags:
+        - dump
+      summary: Get a dump by id
+      parameters:
+        - in: path
+          name: dumpId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: id of the dump to get
+      responses:
+        200:
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/error'
+                $ref: '#/components/schemas/dump'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
 components:
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
   schemas:
     error:
       type: object
@@ -49,17 +96,23 @@ components:
       properties:
         message:
           type: string
-    resource:
+    dump:
       type: object
       required:
         - id
         - name
-        - description
+        - timestamp
+        - path
       properties:
         id:
-          type: number
-          format: int64
+          type: string
+          format: uuid
         name:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
           type: string
         description:
           type: string
