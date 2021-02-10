@@ -52,6 +52,8 @@ paths:
                   $ref: '#/components/schemas/dump'
         400:
           $ref: '#/components/responses/BadRequest'
+        '5XX':
+          $ref: '#/components/responses/UnexpectedError'
   /dumps/{dumpId}:
     get:
       operationId: getDumpById
@@ -76,6 +78,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         404:
           $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/UnexpectedError'
 components:
   responses:
     BadRequest:
@@ -86,6 +90,12 @@ components:
             $ref: '#/components/schemas/error'
     NotFound:
       description: The specified dump was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    UnexpectedError:
+      description: Unexpected Error
       content:
         application/json:
           schema:
