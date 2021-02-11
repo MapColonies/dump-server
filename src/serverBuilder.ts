@@ -1,4 +1,4 @@
-import express, { Router } from 'express';
+import express from 'express';
 import bodyParser from 'body-parser';
 import { OpenapiViewerRouter, OpenapiRouterConfig } from '@map-colonies/openapi-express-viewer';
 import { getErrorHandlerMiddleware } from '@map-colonies/error-express-handler';
@@ -7,7 +7,8 @@ import { container, inject, injectable } from 'tsyringe';
 import { RequestLogger } from './common/middlewares/RequestLogger';
 import { Services } from './common/constants';
 import { IConfig, ILogger } from './common/interfaces';
-import { resourceNameRouterFactory } from './resourceName/routes/resourceNameRouter';
+import { dumpMetadataRouterFactory } from './dumpMetadata/routes/dumpMetadataRouter';
+
 @injectable()
 export class ServerBuilder {
   private readonly serverInstance: express.Application;
@@ -35,7 +36,7 @@ export class ServerBuilder {
   }
 
   private buildRoutes(): void {
-    this.serverInstance.use('/resourceName', resourceNameRouterFactory(container));
+    this.serverInstance.use('/dumps', dumpMetadataRouterFactory(container));
     this.buildDocsRoutes();
   }
 

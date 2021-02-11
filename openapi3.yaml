@@ -11,30 +11,28 @@ servers:
 paths:
   /dumps:
     get:
-      operationId: getDumpsByQuery
+      operationId: getDumps
       tags:
         - dump
-      summary: Get dumps by query
+      summary: Get dumps by optional filters
       parameters:
         - in: query
           name: limit
           schema:
             type: integer
             default: 10
-            minimum: 0
+            minimum: 1
             maximum: 100
-          description: The number of dumps to return
+          description: The number of dumps to be returned in a request
         - in: query
           name: from
           schema:
-            type: string
-            format: date
+            $ref: '#/components/schemas/dumpDate'
           description: The date to fetch dumps from
         - in: query
           name: to
           schema:
-            type: string
-            format: date
+            $ref: '#/components/schemas/dumpDate'
           description: The date to fetch dumps until
         - in: query
           name: sort
@@ -54,8 +52,8 @@ paths:
                   $ref: '#/components/schemas/dump'
         400:
           $ref: '#/components/responses/BadRequest'
-        404:
-          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/UnexpectedError'
   /dumps/{dumpId}:
     get:
       operationId: getDumpById
@@ -66,8 +64,7 @@ paths:
         - in: path
           name: dumpId
           schema:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/dumpId'
           required: true
           description: id of the dump to get
       responses:
@@ -81,6 +78,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         404:
           $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/UnexpectedError'
 components:
   responses:
     BadRequest:
@@ -90,7 +89,13 @@ components:
           schema:
             $ref: '#/components/schemas/error'
     NotFound:
-      description: The specified resource was not found
+      description: The specified dump was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    UnexpectedError:
+      description: Unexpected Error
       content:
         application/json:
           schema:
@@ -115,17 +120,16 @@ components:
         - id
         - name
         - timestamp
-        - path
+        - url
       properties:
         id:
-          type: string
-          format: uuid
+          $ref: '#/components/schemas/dumpId'
         name:
           type: string
         timestamp:
           type: string
           format: date-time
-        path:
+        url:
           type: string
         description:
           type: string
