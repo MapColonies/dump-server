@@ -6,6 +6,7 @@ import { injectable, inject } from 'tsyringe';
 import { Services } from '../../common/constants';
 import { ILogger } from '../../common/interfaces';
 import { DumpMetadataResponse } from '../models/dumpMetadata';
+import { DumpMetadataFilter } from '../models/dumpMetadataFilter';
 import { DumpMetadataManager } from '../models/dumpMetadataManager';
 import { DumpNotFoundError } from '../models/errors';
 
@@ -13,7 +14,9 @@ interface DumpMetadataParams {
   dumpId: string;
 }
 
-type GetDumpMetadataHandler = RequestHandler<DumpMetadataParams, DumpMetadataResponse>;
+type GetDumpMetadataByIdHandler = RequestHandler<DumpMetadataParams, DumpMetadataResponse>;
+
+type GetDumpsMetadataHandler = RequestHandler<undefined, DumpMetadataResponse[], undefined, DumpMetadataFilter>;
 
 @injectable()
 export class DumpMetadataController {
@@ -21,7 +24,7 @@ export class DumpMetadataController {
     @inject(Services.LOGGER) private readonly logger: ILogger,
     @inject(DumpMetadataManager) private readonly manager: DumpMetadataManager
   ) {}
-  public getById: GetDumpMetadataHandler = async (req, res, next) => {
+  public getById: GetDumpMetadataByIdHandler = async (req, res, next) => {
     const { dumpId } = req.params;
 
     let dumpMetadata: DumpMetadataResponse;
@@ -35,5 +38,16 @@ export class DumpMetadataController {
     }
 
     return res.status(httpStatus.OK).json(dumpMetadata);
+  };
+
+  public getByFilter: GetDumpsMetadataHandler = async (req, res, next) => {
+    let dumpsMetadata: DumpMetadataResponse[];
+    try {
+      dumpsMetadata = await this.manager.getDumpsMetadataByFilter(req.query);
+    } catch (error) {
+      return next(error);
+    }
+
+    return res.status(httpStatus.OK).json(dumpsMetadata);
   };
 }

@@ -10,6 +10,7 @@ import { Services } from './common/constants';
 import { promiseTimeout } from './common/utils/promiseTimeout';
 import { DB_TIMEOUT } from './common/constants';
 import { DumpMetadata } from './dumpMetadata/models/dumpMetadata';
+import { IObjectStorageConfig } from './common/interfaces';
 
 const healthCheck = (connection: Connection): (() => Promise<void>) => {
   return async (): Promise<void> => {
@@ -27,12 +28,17 @@ const beforeShutdown = (connection: Connection): (() => Promise<void>) => {
 };
 
 async function registerExternalValues(): Promise<void> {
-  const loggerConfig = config.get<ILoggerConfig>('logger');
+  container.register(Services.CONFIG, { useValue: config });
+
   const packageContent = readFileSync('./package.json', 'utf8');
   const service = JSON.parse(packageContent) as IServiceConfig;
+
+  const loggerConfig = config.get<ILoggerConfig>('logger');
   const logger = new MCLogger(loggerConfig, service);
-  container.register(Services.CONFIG, { useValue: config });
   container.register(Services.LOGGER, { useValue: logger });
+
+  const objectStorage = config.get<IObjectStorageConfig>('objectStorage');
+  container.register(Services.OBJECT_STORAGE, { useValue: objectStorage });
 
   const connection = await initializeConnection();
   container.register(Connection, { useValue: connection });

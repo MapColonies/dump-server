@@ -20,7 +20,7 @@ export interface OpenApiConfig {
   uiPath: string;
 }
 
-export interface IStorageConfig {
+export interface IObjectStorageConfig {
   protocol: string;
   host: string;
 }

@@ -19,7 +19,7 @@ export class DumpMetadata implements IDumpMetadata {
   @Column()
   public bucket!: string;
 
-  @Column({ type: 'timestamp' })
+  @Column()
   public timestamp!: Date;
 
   @Column('text', { nullable: true })

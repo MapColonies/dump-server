@@ -103,7 +103,7 @@ components:
   schemas:
     dumpDate:
       type: string
-      format: date
+      format: date-time
     dumpId:
       type: string
       format: uuid
