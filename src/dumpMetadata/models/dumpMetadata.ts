@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 export interface IDumpMetadata {
   id: string;
@@ -19,6 +19,7 @@ export class DumpMetadata implements IDumpMetadata {
   @Column()
   public bucket!: string;
 
+  @Index('Timestamp-idx')
   @Column()
   public timestamp!: Date;
 
