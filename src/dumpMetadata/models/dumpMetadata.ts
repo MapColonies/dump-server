@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { BUCKET_NAME_LENGTH_LIMIT, CHARACTER_LENGTH_LIMIT } from '../../common/utils/db';
 
 export interface IDumpMetadata {
   id: string;
@@ -13,10 +14,10 @@ export class DumpMetadata implements IDumpMetadata {
   @PrimaryGeneratedColumn('uuid')
   public readonly id!: string;
 
-  @Column()
+  @Column({ length: CHARACTER_LENGTH_LIMIT })
   public name!: string;
 
-  @Column()
+  @Column({ length: BUCKET_NAME_LENGTH_LIMIT })
   public bucket!: string;
 
   @Index('Timestamp-idx')

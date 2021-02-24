@@ -7,8 +7,8 @@ export class InitialMigration1613296291562 implements MigrationInterface {
     await queryRunner.query(`
             CREATE TABLE "dump_metadata" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-                "name" character varying NOT NULL,
-                "bucket" character varying NOT NULL,
+                "name" character varying(100) NOT NULL,
+                "bucket" character varying(63) NOT NULL,
                 "timestamp" TIMESTAMP NOT NULL,
                 "description" text,
                 CONSTRAINT "PK_8184d4a89d0e62adb70bcc0f37e" PRIMARY KEY ("id")

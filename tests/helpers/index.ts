@@ -1,10 +1,10 @@
 import faker from 'faker';
 
 import { DumpMetadataResponse, IDumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
-import { DumpMetadataFilter } from '../../src/dumpMetadata/models/dumpMetadataFilter';
+import { DumpMetadataFilterQueryParams } from '../../src/dumpMetadata/models/dumpMetadataFilter';
 import { SortFilter } from '../../src/dumpMetadata/models/dumpMetadataFilter';
 
-interface IntegrationDumpMetadataResponese extends Omit<DumpMetadataResponse, 'timestamp'> {
+interface IntegrationDumpMetadataResponse extends Omit<DumpMetadataResponse, 'timestamp'> {
   timestamp: string;
 }
 
@@ -19,15 +19,7 @@ export const DEFAULT_LIMIT = 10;
 
 export const BOTTOM_FROM = faker.date.past();
 
-export const TOP_TO = faker.date.future(undefined, BOTTOM_FROM);
-
-export const createFakeUUID = (): string => {
-  return faker.random.uuid();
-};
-
-export const createFakeString = (): string => {
-  return faker.random.word();
-};
+export const TOP_TO = faker.date.future();
 
 export const createFakeDate = (): Date => {
   return faker.date.between(BOTTOM_FROM, TOP_TO);
@@ -35,11 +27,11 @@ export const createFakeDate = (): Date => {
 
 export const createFakeDumpMetadata = (): IDumpMetadata => {
   return {
-    id: createFakeUUID(),
-    name: createFakeString(),
-    bucket: createFakeString(),
+    id: faker.random.uuid(),
+    name: faker.random.word(),
+    bucket: faker.random.word(),
     timestamp: createFakeDate(),
-    description: createFakeString(),
+    description: faker.random.word(),
   };
 };
 
@@ -61,12 +53,12 @@ export const convertFakesToResponses = (fakeDumpsMetadata: IDumpMetadata[]): Dum
   return fakeDumpsMetadata.map((fake) => convertFakeToResponse(fake));
 };
 
-export const convertToISOTimestamp = (response: DumpMetadataResponse): IntegrationDumpMetadataResponese => {
+export const convertToISOTimestamp = (response: DumpMetadataResponse): IntegrationDumpMetadataResponse => {
   const { timestamp, ...rest } = response;
   return { ...rest, timestamp: timestamp.toISOString() };
 };
 
-export const getDefaultFilter = (): DumpMetadataFilter => {
+export const getDefaultFilterQueryParams = (): DumpMetadataFilterQueryParams => {
   return {
     sort: DEFAULT_SORT,
     limit: DEFAULT_LIMIT,

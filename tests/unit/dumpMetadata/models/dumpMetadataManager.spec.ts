@@ -1,4 +1,5 @@
 import { Repository, QueryFailedError } from 'typeorm';
+import faker from 'faker';
 
 import { DumpMetadata, DumpMetadataResponse, IDumpMetadata } from '../../../../src/dumpMetadata/models/dumpMetadata';
 import { DumpMetadataManager } from '../../../../src/dumpMetadata/models/dumpMetadataManager';
@@ -6,15 +7,15 @@ import {
   createFakeDumpMetadata,
   BOTTOM_FROM,
   TOP_TO,
-  getDefaultFilter,
+  getDefaultFilterQueryParams,
   mockObjectStorageConfig,
   convertFakesToResponses,
   convertFakeToResponse,
   sortByOrderFilter,
-  createFakeUUID,
 } from '../../../helpers';
 import { DumpNotFoundError } from '../../../../src/dumpMetadata/models/errors';
 import { DumpMetadataFilter } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
+import { getDefaultFilter } from '../../helpers';
 
 let dumpMetadataManager: DumpMetadataManager;
 
@@ -41,7 +42,7 @@ describe('dumpMetadataManager', () => {
       'should return the filtered dumpsMetadatas in any case of filtering by from(0), to(1), both(2) or none(3) (%#)',
       async function (from: Date | undefined, to: Date | undefined) {
         const dumpsMetadata = [createFakeDumpMetadata(), createFakeDumpMetadata(), createFakeDumpMetadata()];
-        const filter: DumpMetadataFilter = { ...getDefaultFilter(), from, to };
+        const filter: DumpMetadataFilter = { ...getDefaultFilterQueryParams(), from, to };
 
         find.mockReturnValue(sortByOrderFilter(dumpsMetadata, filter.sort));
 
@@ -94,7 +95,7 @@ describe('dumpMetadataManager', () => {
     it('should reject on DB error', async () => {
       findOne.mockRejectedValue(new QueryFailedError('', undefined, new Error()));
 
-      const getPromise = dumpMetadataManager.getDumpMetadataById(createFakeUUID());
+      const getPromise = dumpMetadataManager.getDumpMetadataById(faker.random.uuid());
 
       await expect(getPromise).rejects.toThrow(QueryFailedError);
     });

@@ -2,11 +2,12 @@ import { RequestHandler } from 'express';
 import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
+import { parseISO } from 'date-fns';
 
 import { Services } from '../../common/constants';
 import { ILogger } from '../../common/interfaces';
 import { DumpMetadataResponse } from '../models/dumpMetadata';
-import { DumpMetadataFilter } from '../models/dumpMetadataFilter';
+import { DumpMetadataFilter, DumpMetadataFilterQueryParams } from '../models/dumpMetadataFilter';
 import { DumpMetadataManager } from '../models/dumpMetadataManager';
 import { DumpNotFoundError } from '../models/errors';
 
@@ -16,7 +17,7 @@ interface DumpMetadataParams {
 
 type GetDumpMetadataByIdHandler = RequestHandler<DumpMetadataParams, DumpMetadataResponse>;
 
-type GetDumpsMetadataHandler = RequestHandler<undefined, DumpMetadataResponse[], undefined, DumpMetadataFilter>;
+type GetDumpsMetadataHandler = RequestHandler<undefined, DumpMetadataResponse[], undefined, DumpMetadataFilterQueryParams>;
 
 @injectable()
 export class DumpMetadataController {
@@ -43,7 +44,13 @@ export class DumpMetadataController {
   public getByFilter: GetDumpsMetadataHandler = async (req, res, next) => {
     let dumpsMetadata: DumpMetadataResponse[];
     try {
-      dumpsMetadata = await this.manager.getDumpsMetadataByFilter(req.query);
+      const { from, to } = req.query;
+      const query: DumpMetadataFilter = {
+        ...req.query,
+        to: to !== undefined ? parseISO(to) : undefined,
+        from: from !== undefined ? parseISO(from) : undefined,
+      };
+      dumpsMetadata = await this.manager.getDumpsMetadataByFilter(query);
     } catch (error) {
       return next(error);
     }

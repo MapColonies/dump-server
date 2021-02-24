@@ -1,34 +1,37 @@
 import { inject, injectable } from 'tsyringe';
-import { FindManyOptions, Repository, FindOperator } from 'typeorm';
+import { FindManyOptions, Repository, FindOperator, MoreThanOrEqual, LessThanOrEqual, Between } from 'typeorm';
 
 import { Services } from '../../common/constants';
 import { ILogger, IObjectStorageConfig } from '../../common/interfaces';
-import { moreThanOrEqualTimestamp, DateTypeFormat, lessThanOrEqualTimestamp, betweenTimestamps } from '../../common/utils/db';
 import { DumpMetadata, DumpMetadataResponse, IDumpMetadata } from './dumpMetadata';
 import { DumpNotFoundError } from './errors';
 import { DumpMetadataFilter } from './dumpMetadataFilter';
 
 @injectable()
 export class DumpMetadataManager {
+  private readonly urlHeader: string;
+
   public constructor(
     @inject('DumpMetadataRepository') private readonly repository: Repository<DumpMetadata>,
     @inject(Services.LOGGER) private readonly logger: ILogger,
     @inject(Services.OBJECT_STORAGE) private readonly objectStorageConfig: IObjectStorageConfig
-  ) {}
+  ) {
+    this.urlHeader = this.getUrlHeader();
+  }
 
   public async getDumpMetadataById(id: string): Promise<DumpMetadataResponse> {
     const dumpMetadata = await this.repository.findOne(id);
     if (!dumpMetadata) {
       throw new DumpNotFoundError("Couldn't find dump with the given id.");
     }
-    const dumpMetadataResponse = this.parseDumpMetadataToDumpMetadataResponse(dumpMetadata);
+    const dumpMetadataResponse = this.convertDumpMetadataToDumpMetadataResponse(dumpMetadata);
     return dumpMetadataResponse;
   }
 
   public async getDumpsMetadataByFilter(filter: DumpMetadataFilter): Promise<DumpMetadataResponse[]> {
     const query: FindManyOptions<DumpMetadata> = this.buildQuery(filter);
     const dumpsMetadata = await this.repository.find(query);
-    return dumpsMetadata.map((dumpMetadata) => this.parseDumpMetadataToDumpMetadataResponse(dumpMetadata));
+    return dumpsMetadata.map((dumpMetadata) => this.convertDumpMetadataToDumpMetadataResponse(dumpMetadata));
   }
 
   private getUrlHeader(): string {
@@ -36,9 +39,9 @@ export class DumpMetadataManager {
     return `${protocol}://${host}`;
   }
 
-  private parseDumpMetadataToDumpMetadataResponse(dumpMetadata: IDumpMetadata): DumpMetadataResponse {
+  private convertDumpMetadataToDumpMetadataResponse(dumpMetadata: IDumpMetadata): DumpMetadataResponse {
     const { bucket, ...restOfMetadata } = dumpMetadata;
-    const url = `${this.getUrlHeader()}/${bucket}/${restOfMetadata.name}`;
+    const url = `${this.urlHeader}/${bucket}/${restOfMetadata.name}`;
     return { ...restOfMetadata, url };
   }
 
@@ -59,14 +62,13 @@ export class DumpMetadataManager {
     return findManyOptions;
   }
 
-  private buildTimestampRangeFilter(from?: Date, to?: Date): FindOperator<string> | undefined {
-    const format = DateTypeFormat.DATETIME;
+  private buildTimestampRangeFilter(from?: Date, to?: Date): FindOperator<Date> | undefined {
     if (from && to) {
-      return betweenTimestamps(new Date(from), new Date(to), format);
+      return Between(from, to);
     } else if (from && !to) {
-      return moreThanOrEqualTimestamp(new Date(from), format);
+      return MoreThanOrEqual(from);
     } else if (!from && to) {
-      return lessThanOrEqualTimestamp(new Date(to), format);
+      return LessThanOrEqual(to);
     }
     return undefined;
   }

@@ -9,9 +9,7 @@ import { DumpMetadata } from '../../../src/dumpMetadata/models/dumpMetadata';
 import { registerTestValues } from '../testContainerConfig';
 import { HAPPY_PATH, SAD_PATH, BAD_PATH } from '../constants';
 import {
-  createFakeString,
-  createFakeUUID,
-  getDefaultFilter,
+  getDefaultFilterQueryParams,
   sortByOrderFilter,
   DEFAULT_LIMIT,
   DEFAULT_SORT,
@@ -22,7 +20,7 @@ import {
   convertFakeToResponse,
   convertToISOTimestamp,
 } from '../../helpers';
-import { DumpMetadataFilter } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
+import { DumpMetadataFilterQueryParams } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
 import { SortFilter } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
 import { generateDumpsMetadataOnDb } from './helpers/db';
 import * as requestSender from './helpers/requestSender';
@@ -46,7 +44,7 @@ describe('dumps', function () {
   describe('GET /dumps', function () {
     describe(`${HAPPY_PATH}`, function () {
       it('should return 200 status code and the dumps queried by the default filter with given empty filter', async function () {
-        const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT);
+        const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT + 1);
 
         const fakeResponses = convertFakesToResponses(fakeData);
 
@@ -56,13 +54,13 @@ describe('dumps', function () {
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.body).toHaveLength(DEFAULT_LIMIT);
-        expect(response.body).toMatchObject(sortByOrderFilter(integrationDumpsMetadata, DEFAULT_SORT));
+        expect(response.body).toMatchObject(sortByOrderFilter(integrationDumpsMetadata, DEFAULT_SORT).slice(0, DEFAULT_LIMIT));
       });
 
       it('should return 200 status code and the dumps queried by filter', async function () {
         const from = createFakeDate();
         const to = faker.date.between(from, TOP_TO);
-        const filter: DumpMetadataFilter = { limit: DEFAULT_LIMIT, sort: 'asc', from, to };
+        const filter: DumpMetadataFilterQueryParams = { limit: DEFAULT_LIMIT, sort: 'asc', from: from.toISOString(), to: to.toISOString() };
 
         const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT + 1);
 
@@ -94,7 +92,7 @@ describe('dumps', function () {
         const fakeResponses = convertFakesToResponses(fakeData);
         const integrationDumpsMetadata = fakeResponses.map((response) => convertToISOTimestamp(response));
 
-        const response = await requestSender.getDumpsMetadataByFilter(app, getDefaultFilter());
+        const response = await requestSender.getDumpsMetadataByFilter(app, getDefaultFilterQueryParams());
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.body).toHaveLength(amountOfDumpsToCreate);
@@ -103,7 +101,7 @@ describe('dumps', function () {
 
       it('should return 200 status code and only the top requested limit by the requested sort', async function () {
         const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT + 1);
-        const filter = getDefaultFilter();
+        const filter = getDefaultFilterQueryParams();
 
         const fakeResponses = convertFakesToResponses(fakeData);
         const integrationDumpsMetadata = fakeResponses.map((response) => convertToISOTimestamp(response));
@@ -117,7 +115,7 @@ describe('dumps', function () {
 
       it('should return 200 status code and empty response when requesting filter with a later from than to', async function () {
         await generateDumpsMetadataOnDb(1);
-        const filter: DumpMetadataFilter = { ...getDefaultFilter(), from: TOP_TO, to: BOTTOM_FROM };
+        const filter: DumpMetadataFilterQueryParams = { ...getDefaultFilterQueryParams(), from: TOP_TO.toISOString(), to: BOTTOM_FROM.toISOString() };
 
         const response = await requestSender.getDumpsMetadataByFilter(app, filter);
 
@@ -129,7 +127,7 @@ describe('dumps', function () {
         const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT);
 
         const from = createFakeDate();
-        const filter: DumpMetadataFilter = { ...getDefaultFilter(), from };
+        const filter: DumpMetadataFilterQueryParams = { ...getDefaultFilterQueryParams(), from: from.toISOString() };
 
         const dataFilteredByTime = fakeData.filter((dump) => isAfter(dump.timestamp, from));
         const fakeResponses = convertFakesToResponses(dataFilteredByTime);
@@ -144,7 +142,7 @@ describe('dumps', function () {
       it('should return 200 status code and response with only dumps correlating to the to filter', async function () {
         const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT);
         const to = createFakeDate();
-        const filter: DumpMetadataFilter = { ...getDefaultFilter(), to };
+        const filter: DumpMetadataFilterQueryParams = { ...getDefaultFilterQueryParams(), to: to.toISOString() };
 
         const dataFilteredByTime = fakeData.filter((dump) => isBefore(dump.timestamp, to));
         const fakeResponses = convertFakesToResponses(dataFilteredByTime);
@@ -158,7 +156,7 @@ describe('dumps', function () {
 
       it('should return 200 status code and the data should be sorted ascending', async function () {
         const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT);
-        const filter: DumpMetadataFilter = { ...getDefaultFilter(), sort: 'asc' };
+        const filter: DumpMetadataFilterQueryParams = { ...getDefaultFilterQueryParams(), sort: 'asc' };
 
         const fakeResponses = convertFakesToResponses(fakeData);
         const integrationDumpsMetadata = fakeResponses.map((response) => convertToISOTimestamp(response));
@@ -179,7 +177,7 @@ describe('dumps', function () {
 
     describe(`${BAD_PATH}`, function () {
       it('should return 400 status code for an invalid sort', async function () {
-        const filter = getDefaultFilter();
+        const filter = getDefaultFilterQueryParams();
         filter.sort = 'fake' as SortFilter;
 
         const response = await requestSender.getDumpsMetadataByFilter(app, filter);
@@ -189,7 +187,7 @@ describe('dumps', function () {
       });
 
       it('should return 400 status code for an invalid limit lower than 1', async function () {
-        const filter = { ...getDefaultFilter(), limit: 0 };
+        const filter = { ...getDefaultFilterQueryParams(), limit: 0 };
 
         const response = await requestSender.getDumpsMetadataByFilter(app, filter);
 
@@ -198,7 +196,7 @@ describe('dumps', function () {
       });
 
       it('should return 400 status code for an invalid limit greater than 100', async function () {
-        const filter = { ...getDefaultFilter(), limit: 101 };
+        const filter = { ...getDefaultFilterQueryParams(), limit: 101 };
 
         const response = await requestSender.getDumpsMetadataByFilter(app, filter);
 
@@ -235,7 +233,7 @@ describe('dumps', function () {
     });
     describe(`${BAD_PATH}`, function () {
       it('should return 400 status code and that the given id is not valid', async function () {
-        const response = await requestSender.getDumpMetadataById(app, createFakeString());
+        const response = await requestSender.getDumpMetadataById(app, faker.random.word());
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', 'request.params.dumpId should match format "uuid"');
@@ -243,7 +241,7 @@ describe('dumps', function () {
     });
     describe(`${SAD_PATH}`, function () {
       it('should return 404 status code if a dump with the requested id does not exist', async function () {
-        const response = await requestSender.getDumpMetadataById(app, createFakeUUID());
+        const response = await requestSender.getDumpMetadataById(app, faker.random.uuid());
 
         expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
         expect(response.body).toHaveProperty('message', "Couldn't find dump with the given id.");
@@ -254,7 +252,7 @@ describe('dumps', function () {
         const findOneMock = jest.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
         const mockedApp = requestSender.getMockedRepoApp({ findOne: findOneMock });
 
-        const response = await requestSender.getDumpMetadataById(mockedApp, createFakeUUID());
+        const response = await requestSender.getDumpMetadataById(mockedApp, faker.random.uuid());
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.body).toHaveProperty('message', errorMessage);

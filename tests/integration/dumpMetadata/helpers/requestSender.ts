@@ -3,7 +3,7 @@ import { Application } from 'express';
 
 import { container } from 'tsyringe';
 import { ServerBuilder } from '../../../../src/serverBuilder';
-import { DumpMetadataFilter } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
+import { DumpMetadataFilterQueryParams } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
 
 export function getApp(): Application {
   const builder = container.resolve<ServerBuilder>(ServerBuilder);
@@ -17,12 +17,11 @@ export function getMockedRepoApp(repo: unknown): Application {
 
 export async function getDumpsMetadataByFilter(
   app: Application,
-  filter: DumpMetadataFilter | Record<string, never>,
-  responseType = 'application/json'
+  filter: DumpMetadataFilterQueryParams | Record<string, never>
 ): Promise<supertest.Response> {
-  return supertest.agent(app).get(`/dumps`).query(filter).set('Content-Type', 'application/json').accept(responseType);
+  return supertest.agent(app).get(`/dumps`).query(filter).set('Content-Type', 'application/json').accept('application/json');
 }
 
-export async function getDumpMetadataById(app: Application, id: string, responseType = 'application/json'): Promise<supertest.Response> {
-  return supertest.agent(app).get(`/dumps/${id}`).set('Content-Type', 'application/json').accept(responseType);
+export async function getDumpMetadataById(app: Application, id: string): Promise<supertest.Response> {
+  return supertest.agent(app).get(`/dumps/${id}`).set('Content-Type', 'application/json').accept('application/json');
 }
