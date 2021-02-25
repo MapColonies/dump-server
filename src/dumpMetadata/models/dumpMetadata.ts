@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
-import { BUCKET_NAME_LENGTH_LIMIT, CHARACTER_LENGTH_LIMIT } from '../../common/utils/db';
+import { BUCKET_NAME_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT } from '../../common/utils/db';
 
 export interface IDumpMetadata {
   id: string;
@@ -14,7 +14,7 @@ export class DumpMetadata implements IDumpMetadata {
   @PrimaryGeneratedColumn('uuid')
   public readonly id!: string;
 
-  @Column({ length: CHARACTER_LENGTH_LIMIT })
+  @Column({ length: NAME_LENGTH_LIMIT })
   public name!: string;
 
   @Column({ length: BUCKET_NAME_LENGTH_LIMIT })
@@ -24,7 +24,7 @@ export class DumpMetadata implements IDumpMetadata {
   @Column()
   public timestamp!: Date;
 
-  @Column('text', { nullable: true })
+  @Column({ nullable: true, length: DESCRIPTION_LENGTH_LIMIT })
   public description!: string;
 }
 

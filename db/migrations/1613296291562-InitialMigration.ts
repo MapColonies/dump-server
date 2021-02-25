@@ -10,7 +10,7 @@ export class InitialMigration1613296291562 implements MigrationInterface {
                 "name" character varying(100) NOT NULL,
                 "bucket" character varying(63) NOT NULL,
                 "timestamp" TIMESTAMP NOT NULL,
-                "description" text,
+                "description" character varying(256),
                 CONSTRAINT "PK_8184d4a89d0e62adb70bcc0f37e" PRIMARY KEY ("id")
             )
         `);

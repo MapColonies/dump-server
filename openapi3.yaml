@@ -126,6 +126,7 @@ components:
           $ref: '#/components/schemas/dumpId'
         name:
           type: string
+          maxLength: 100
         timestamp:
           type: string
           format: date-time
@@ -133,3 +134,4 @@ components:
           type: string
         description:
           type: string
+          maxLength: 256
