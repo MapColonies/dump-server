@@ -1,5 +1,6 @@
 {
   "db": {
-    "host": "postgres"
+    "host": "postgres",
+    "schema": "public"
   }
 }

@@ -5,13 +5,13 @@ export class AddedTimestampIndex1613566030377 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            CREATE INDEX "Timestamp-idx" ON "dump_metadata" ("timestamp")
+            CREATE INDEX "Timestamp-idx" ON "dump_server"."dump_metadata" ("timestamp")
         `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DROP INDEX "Timestamp-idx"
+            DROP INDEX "dump_server"."Timestamp-idx"
         `);
   }
 }

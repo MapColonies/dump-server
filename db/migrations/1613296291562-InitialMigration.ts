@@ -5,7 +5,7 @@ export class InitialMigration1613296291562 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            CREATE TABLE "dump_metadata" (
+            CREATE TABLE "dump_server"."dump_metadata" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "name" character varying(100) NOT NULL,
                 "bucket" character varying(63) NOT NULL,
@@ -18,7 +18,7 @@ export class InitialMigration1613296291562 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DROP TABLE "dump_metadata"
+            DROP TABLE "dump_server"."dump_metadata"
         `);
   }
 }
