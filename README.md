@@ -2,7 +2,7 @@
 
 ----------------------------------------
 
-A RESTful API for querying osm planet dumps
+A RESTful API for querying and creating osm planet dumps
 
 
 ## Run Migrations
