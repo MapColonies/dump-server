@@ -24,10 +24,10 @@ import {
 } from '../../helpers';
 import { DumpMetadataFilterQueryParams } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
 import { SortFilter } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
+import { BUCKET_NAME_LENGTH_LIMIT, BUCKET_NAME_MIN_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT } from '../../../src/common/utils/db';
 import { generateDumpsMetadataOnDb } from './helpers/db';
 import * as requestSender from './helpers/requestSender';
 import { getRepositoryFromContainer } from './helpers/db';
-import { BUCKET_NAME_LENGTH_LIMIT, BUCKET_NAME_MIN_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT } from '../../../src/common/utils/db';
 
 let app: Application;
 let repository: Repository<DumpMetadata>;
