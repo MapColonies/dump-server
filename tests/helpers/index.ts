@@ -25,6 +25,14 @@ export const createFakeDate = (): Date => {
   return faker.date.between(BOTTOM_FROM, TOP_TO);
 };
 
+export const createFakeStringByLength = (length: number): string => {
+  let str = '';
+  while (str.length < length) {
+    str += faker.lorem.paragraph();
+  }
+  return str.slice(0, length);
+};
+
 export const createFakeDumpMetadata = (): IDumpMetadata => {
   return {
     id: faker.random.uuid(),

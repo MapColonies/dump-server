@@ -4,6 +4,7 @@ import { Application } from 'express';
 import { container } from 'tsyringe';
 import { ServerBuilder } from '../../../../src/serverBuilder';
 import { DumpMetadataFilterQueryParams } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
+import { DumpMetadataCreation } from '../../../../src/dumpMetadata/models/dumpMetadata';
 
 export function getApp(): Application {
   const builder = container.resolve<ServerBuilder>(ServerBuilder);
@@ -20,6 +21,10 @@ export async function getDumpsMetadataByFilter(
   filter: DumpMetadataFilterQueryParams | Record<string, never>
 ): Promise<supertest.Response> {
   return supertest.agent(app).get(`/dumps`).query(filter).set('Content-Type', 'application/json').accept('application/json');
+}
+
+export async function createDump(app: Application, dump: DumpMetadataCreation): Promise<supertest.Response> {
+  return supertest.agent(app).post(`/dumps`).set('Content-Type', 'application/json').send(dump);
 }
 
 export async function getDumpMetadataById(app: Application, id: string): Promise<supertest.Response> {

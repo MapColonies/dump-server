@@ -22,16 +22,21 @@ let dumpMetadataManager: DumpMetadataManager;
 describe('dumpMetadataManager', () => {
   let find: jest.Mock;
   let findOne: jest.Mock;
+  let insert: jest.Mock;
 
   beforeEach(function () {
     find = jest.fn();
     findOne = jest.fn();
-    const repository = ({ find, findOne } as unknown) as Repository<DumpMetadata>;
+    insert = jest.fn();
+
+    const repository = ({ find, findOne, insert } as unknown) as Repository<DumpMetadata>;
     dumpMetadataManager = new DumpMetadataManager(repository, { log: jest.fn() }, mockObjectStorageConfig);
   });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
+
   describe('#getDumpMetadataByFilter', () => {
     it.each([
       [BOTTOM_FROM, undefined],
@@ -71,6 +76,7 @@ describe('dumpMetadataManager', () => {
       await expect(getByFilterPromise).rejects.toThrow(QueryFailedError);
     });
   });
+
   describe('#getDumpMetadataById', () => {
     it('should return the dumpMetadata', async function () {
       const dumpMetadata = createFakeDumpMetadata();
@@ -98,6 +104,27 @@ describe('dumpMetadataManager', () => {
       const getPromise = dumpMetadataManager.getDumpMetadataById(faker.random.uuid());
 
       await expect(getPromise).rejects.toThrow(QueryFailedError);
+    });
+  });
+
+  describe('#createDumpMetadata', () => {
+    it('should resolves without errors', async () => {
+      insert.mockResolvedValue(undefined);
+      const dumpMetadata = createFakeDumpMetadata();
+      const { id, ...rest } = dumpMetadata;
+      const createPromise = dumpMetadataManager.createDumpMetadata(rest);
+
+      await expect(createPromise).resolves.not.toThrow();
+    });
+
+    it('should reject on DB error', async () => {
+      insert.mockRejectedValue(new QueryFailedError('', undefined, new Error()));
+
+      const dumpMetadata = createFakeDumpMetadata();
+      const { id, ...rest } = dumpMetadata;
+      const createPromise = dumpMetadataManager.createDumpMetadata(rest);
+
+      await expect(createPromise).rejects.toThrow(QueryFailedError);
     });
   });
 });

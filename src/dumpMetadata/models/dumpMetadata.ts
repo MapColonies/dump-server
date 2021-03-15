@@ -31,3 +31,5 @@ export class DumpMetadata implements IDumpMetadata {
 export interface DumpMetadataResponse extends Omit<IDumpMetadata, 'bucket'> {
   url: string;
 }
+
+export interface DumpMetadataCreation extends Omit<IDumpMetadata, 'id'> {}

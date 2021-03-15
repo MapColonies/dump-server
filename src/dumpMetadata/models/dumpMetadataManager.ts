@@ -3,7 +3,7 @@ import { FindManyOptions, Repository, FindOperator, MoreThanOrEqual, LessThanOrE
 
 import { Services } from '../../common/constants';
 import { ILogger, IObjectStorageConfig } from '../../common/interfaces';
-import { DumpMetadata, DumpMetadataResponse, IDumpMetadata } from './dumpMetadata';
+import { DumpMetadata, DumpMetadataCreation, DumpMetadataResponse, IDumpMetadata } from './dumpMetadata';
 import { DumpNotFoundError } from './errors';
 import { DumpMetadataFilter } from './dumpMetadataFilter';
 
@@ -32,6 +32,10 @@ export class DumpMetadataManager {
     const query: FindManyOptions<DumpMetadata> = this.buildQuery(filter);
     const dumpsMetadata = await this.repository.find(query);
     return dumpsMetadata.map((dumpMetadata) => this.convertDumpMetadataToDumpMetadataResponse(dumpMetadata));
+  }
+
+  public async createDumpMetadata(newDumpMetadata: DumpMetadataCreation): Promise<void> {
+    await this.repository.insert(newDumpMetadata);
   }
 
   private getUrlHeader(): string {

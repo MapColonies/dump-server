@@ -6,7 +6,7 @@ import { parseISO } from 'date-fns';
 
 import { Services } from '../../common/constants';
 import { ILogger } from '../../common/interfaces';
-import { DumpMetadataResponse } from '../models/dumpMetadata';
+import { DumpMetadataCreation, DumpMetadataResponse } from '../models/dumpMetadata';
 import { DumpMetadataFilter, DumpMetadataFilterQueryParams } from '../models/dumpMetadataFilter';
 import { DumpMetadataManager } from '../models/dumpMetadataManager';
 import { DumpNotFoundError } from '../models/errors';
@@ -18,6 +18,8 @@ interface DumpMetadataParams {
 type GetDumpMetadataByIdHandler = RequestHandler<DumpMetadataParams, DumpMetadataResponse>;
 
 type GetDumpsMetadataHandler = RequestHandler<undefined, DumpMetadataResponse[], undefined, DumpMetadataFilterQueryParams>;
+
+type PostDumpMetadataHandler = RequestHandler<undefined, undefined, DumpMetadataCreation>;
 
 @injectable()
 export class DumpMetadataController {
@@ -56,5 +58,14 @@ export class DumpMetadataController {
     }
 
     return res.status(httpStatus.OK).json(dumpsMetadata);
+  };
+
+  public post: PostDumpMetadataHandler = async (req, res, next) => {
+    try {
+      await this.manager.createDumpMetadata(req.body);
+    } catch (error) {
+      return next(error);
+    }
+    return res.sendStatus(httpStatus.CREATED);
   };
 }

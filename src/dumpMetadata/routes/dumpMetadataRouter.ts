@@ -7,6 +7,7 @@ const dumpMetadataRouterFactory: FactoryFunction<Router> = (dependencyContainer)
   const controller = dependencyContainer.resolve(DumpMetadataController);
 
   router.get('/', controller.getByFilter);
+  router.post('/', controller.post);
   router.get('/:dumpId', controller.getById);
 
   return router;
