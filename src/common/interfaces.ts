@@ -23,4 +23,5 @@ export interface OpenApiConfig {
 export interface IObjectStorageConfig {
   protocol: string;
   host: string;
+  port: string;
 }

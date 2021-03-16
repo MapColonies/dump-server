@@ -1,3 +1,5 @@
+helm/myvalues.yaml
+
 # Logs
 logs
 *.log

@@ -22,6 +22,7 @@
   },
   "objectStorage": {
     "protocol": "http",
-    "host": "some_storage_host"
+    "host": "some_object_storage_host",
+    "port": 9000
   }
 }

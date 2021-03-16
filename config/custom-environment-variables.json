@@ -20,7 +20,11 @@
     "database": "DB_NAME"
   },
   "objectStorage": {
-    "protocol": "STORAGE_PROTOCOL",
-    "host": "STORAGE_HOST"
+    "protocol": "OBJECT_STORAGE_PROTOCOL",
+    "host": "OBJECT_STORAGE_HOST",
+    "port": {
+      "__name": "OBJECT_STORAGE_PORT",
+      "__format": "number"
+    }
   }
 }
