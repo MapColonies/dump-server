@@ -109,9 +109,9 @@ describe('dumpMetadataManager', () => {
 
   describe('#createDumpMetadata', () => {
     it('should resolves without errors', async () => {
-      insert.mockResolvedValue(undefined);
       const dumpMetadata = createFakeDumpMetadata();
       const { id, ...rest } = dumpMetadata;
+      insert.mockResolvedValue({ identifiers: [id] });
       const createPromise = dumpMetadataManager.createDumpMetadata(rest);
 
       await expect(createPromise).resolves.not.toThrow();

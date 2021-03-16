@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: dump-server
-  description: A restful API for querying and creating osm planet dumps
+  description: A RESTful API for querying and saving planet dump's metadata
   version: 1.0.0
   license:
     name: MIT

@@ -20,11 +20,10 @@ import {
   convertFakeToResponse,
   convertToISOTimestamp,
   createFakeDumpMetadata,
-  createFakeStringByLength,
 } from '../../helpers';
 import { DumpMetadataFilterQueryParams } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
 import { SortFilter } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
-import { BUCKET_NAME_LENGTH_LIMIT, BUCKET_NAME_MIN_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT } from '../../../src/common/utils/db';
+import { BUCKET_NAME_LENGTH_LIMIT, BUCKET_NAME_MIN_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT } from '../../../src/common/constants';
 import { generateDumpsMetadataOnDb } from './helpers/db';
 import * as requestSender from './helpers/requestSender';
 import { getRepositoryFromContainer } from './helpers/db';
@@ -321,7 +320,7 @@ describe('dumps', function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
 
-        const response = await requestSender.createDump(app, { ...dumpCreationBody, name: createFakeStringByLength(NAME_LENGTH_LIMIT + 1) });
+        const response = await requestSender.createDump(app, { ...dumpCreationBody, name: faker.random.alpha({ count: NAME_LENGTH_LIMIT + 1 }) });
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `request.body.name should NOT be longer than ${NAME_LENGTH_LIMIT} characters`);
@@ -331,7 +330,10 @@ describe('dumps', function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
 
-        const response = await requestSender.createDump(app, { ...dumpCreationBody, bucket: createFakeStringByLength(BUCKET_NAME_LENGTH_LIMIT + 1) });
+        const response = await requestSender.createDump(app, {
+          ...dumpCreationBody,
+          bucket: faker.random.alpha({ count: BUCKET_NAME_LENGTH_LIMIT + 1 }),
+        });
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `request.body.bucket should NOT be longer than ${BUCKET_NAME_LENGTH_LIMIT} characters`);
       });
@@ -351,7 +353,7 @@ describe('dumps', function () {
 
         const response = await requestSender.createDump(app, {
           ...dumpCreationBody,
-          description: createFakeStringByLength(DESCRIPTION_LENGTH_LIMIT + 1),
+          description: faker.random.alpha({ count: DESCRIPTION_LENGTH_LIMIT + 1 }),
         });
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `request.body.description should NOT be longer than ${DESCRIPTION_LENGTH_LIMIT} characters`);

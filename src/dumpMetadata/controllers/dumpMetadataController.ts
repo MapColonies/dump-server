@@ -3,6 +3,7 @@ import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { parseISO } from 'date-fns';
+import { ObjectLiteral } from 'typeorm';
 
 import { Services } from '../../common/constants';
 import { ILogger } from '../../common/interfaces';
@@ -20,6 +21,10 @@ type GetDumpMetadataByIdHandler = RequestHandler<DumpMetadataParams, DumpMetadat
 type GetDumpsMetadataHandler = RequestHandler<undefined, DumpMetadataResponse[], undefined, DumpMetadataFilterQueryParams>;
 
 type PostDumpMetadataHandler = RequestHandler<undefined, undefined, DumpMetadataCreation>;
+
+interface InsertionResult extends ObjectLiteral {
+  [key: string]: string;
+}
 
 @injectable()
 export class DumpMetadataController {
@@ -62,7 +67,8 @@ export class DumpMetadataController {
 
   public post: PostDumpMetadataHandler = async (req, res, next) => {
     try {
-      await this.manager.createDumpMetadata(req.body);
+      const createdId = await this.manager.createDumpMetadata(req.body);
+      this.logger.log('info', `dump metadata created successfully with id: ${createdId}`);
     } catch (error) {
       return next(error);
     }

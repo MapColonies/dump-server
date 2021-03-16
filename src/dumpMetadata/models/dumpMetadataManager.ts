@@ -34,8 +34,9 @@ export class DumpMetadataManager {
     return dumpsMetadata.map((dumpMetadata) => this.convertDumpMetadataToDumpMetadataResponse(dumpMetadata));
   }
 
-  public async createDumpMetadata(newDumpMetadata: DumpMetadataCreation): Promise<void> {
-    await this.repository.insert(newDumpMetadata);
+  public async createDumpMetadata(newDumpMetadata: DumpMetadataCreation): Promise<string> {
+    const insertionResult = await this.repository.insert(newDumpMetadata);
+    return insertionResult.identifiers[0].id as string;
   }
 
   private getUrlHeader(): string {

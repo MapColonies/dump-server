@@ -61,7 +61,7 @@
   "devDependencies": {
     "@commitlint/cli": "^9.1.1",
     "@commitlint/config-conventional": "^10.0.0",
-    "@map-colonies/eslint-config": "^2.1.0",
+    "@map-colonies/eslint-config": "^2.2.0",
     "@map-colonies/prettier-config": "0.0.1",
     "@redocly/openapi-cli": "^1.0.0-beta.25",
     "@types/config": "0.0.36",

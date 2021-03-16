@@ -1,4 +1,5 @@
 import faker from 'faker';
+import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '../../src/common/constants';
 
 import { DumpMetadataResponse, IDumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
 import { DumpMetadataFilterQueryParams } from '../../src/dumpMetadata/models/dumpMetadataFilter';
@@ -25,19 +26,11 @@ export const createFakeDate = (): Date => {
   return faker.date.between(BOTTOM_FROM, TOP_TO);
 };
 
-export const createFakeStringByLength = (length: number): string => {
-  let str = '';
-  while (str.length < length) {
-    str += faker.lorem.paragraph();
-  }
-  return str.slice(0, length);
-};
-
 export const createFakeDumpMetadata = (): IDumpMetadata => {
   return {
     id: faker.random.uuid(),
     name: faker.random.word(),
-    bucket: faker.random.word(),
+    bucket: faker.random.alpha({ count: BUCKET_NAME_MIN_LENGTH_LIMIT }),
     timestamp: createFakeDate(),
     description: faker.random.word(),
   };
