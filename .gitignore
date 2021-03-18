@@ -1,4 +1,4 @@
-helm/myvalues.yaml
+**/myvalues.yaml
 
 # Logs
 logs
