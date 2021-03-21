@@ -3,7 +3,6 @@ import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { parseISO } from 'date-fns';
-import { ObjectLiteral } from 'typeorm';
 
 import { Services } from '../../common/constants';
 import { ILogger } from '../../common/interfaces';
@@ -20,11 +19,7 @@ type GetDumpMetadataByIdHandler = RequestHandler<DumpMetadataParams, DumpMetadat
 
 type GetDumpsMetadataHandler = RequestHandler<undefined, DumpMetadataResponse[], undefined, DumpMetadataFilterQueryParams>;
 
-type PostDumpMetadataHandler = RequestHandler<undefined, undefined, DumpMetadataCreation>;
-
-interface InsertionResult extends ObjectLiteral {
-  [key: string]: string;
-}
+type PostDumpMetadataHandler = RequestHandler<Record<string, string>, undefined, DumpMetadataCreation>;
 
 @injectable()
 export class DumpMetadataController {

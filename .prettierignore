@@ -3,6 +3,8 @@ dist
 .gitignore
 CHANGELOG.md
 commitlint.config.js
+coverage
+helm
 package-lock.json
 package.json
 README.md
@@ -10,4 +12,3 @@ tsbuildconfig.json
 tsconfig.json
 node_modules
 *.html
-helm

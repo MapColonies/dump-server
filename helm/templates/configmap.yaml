@@ -6,21 +6,15 @@ kind: ConfigMap
 metadata:
   name: {{ $releaseName }}-{{ $chartName }}-configmap
 data:
-  {{- if .Values.enableInternalDb -}}
-  {{- with .Values.postgresql }}
+  {{- if .Values.enableInternalDb }}
   DB_HOST: {{ $releaseName }}-postgresql
-  DB_NAME: {{ .postgresqlDatabase }}
-  {{- end -}}
-  {{- else -}}
-  {{- with .Values.dbConfig }}
-  DB_HOST: {{ .host }}
-  DB_NAME: {{ .database }}
-  {{- end -}}
+  DB_NAME: {{ .Values.postgresql.postgresqlDatabase }}
+  {{- else }}
+  DB_HOST: {{ .Values.dbConfig.host }}
+  DB_NAME: {{ .Values.dbConfig.database }}
+  {{- end }}
+  LOG_LEVEL: {{ .Values.env.logLevel | quote }}
+  OBJECT_STORAGE_PROTOCOL: {{ .Values.objectStrorageConfig.protocol }}
+  OBJECT_STORAGE_HOST: {{ .Values.objectStrorageConfig.host }}
+  OBJECT_STORAGE_PORT: {{ .Values.objectStrorageConfig.port  | quote }}
 {{- end -}}
-{{- with .Values }}
-  LOG_LEVEL: {{ .env.logLevel | quote }}
-  OBJECT_STORAGE_PROTOCOL: {{ .objectStrorageConfig.protocol }}
-  OBJECT_STORAGE_HOST: {{ .objectStrorageConfig.host }}
-  OBJECT_STORAGE_PORT: {{ .objectStrorageConfig.port  | quote }}
-{{- end -}}
-{{- end }}

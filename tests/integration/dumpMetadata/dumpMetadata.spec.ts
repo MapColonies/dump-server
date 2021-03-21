@@ -358,6 +358,15 @@ describe('dumps', function () {
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `request.body.description should NOT be longer than ${DESCRIPTION_LENGTH_LIMIT} characters`);
       });
+
+      it('should return 401 status code if no authorization header was set', async function () {
+        const fakeDumpMetada = createFakeDumpMetadata();
+        const { id, ...dumpCreationBody } = fakeDumpMetada;
+        const response = await requestSender.createDump(app, dumpCreationBody, false);
+
+        expect(response.status).toBe(httpStatusCodes.UNAUTHORIZED);
+        expect(response.body).toHaveProperty('message', 'Authorization header required');
+      });
     });
 
     describe(`${SAD_PATH}`, function () {

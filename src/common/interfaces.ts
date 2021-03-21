@@ -2,6 +2,7 @@ import { ILogMethod } from '@map-colonies/mc-logger';
 
 export interface IServerConfig {
   port: string;
+  secretToken: string;
 }
 
 export interface ILogger {

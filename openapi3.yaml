@@ -59,6 +59,8 @@ paths:
       tags:
         - dump
       summary: Create a dump
+      security:
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -69,6 +71,8 @@ paths:
           description: Created
         400:
           $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
         '5XX':
           $ref: '#/components/responses/UnexpectedError'
   /dumps/{dumpId}:
@@ -100,13 +104,19 @@ paths:
 components:
   responses:
     BadRequest:
-      description: Bad request
+      description: Bad Request
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/error'
     NotFound:
-      description: The specified dump was not found
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    Unauthorized:
+      description: Unauthorized Error
       content:
         application/json:
           schema:
@@ -117,6 +127,10 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     dumpDate:
       type: string

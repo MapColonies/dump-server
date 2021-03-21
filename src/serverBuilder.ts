@@ -4,7 +4,8 @@ import { OpenapiViewerRouter, OpenapiRouterConfig } from '@map-colonies/openapi-
 import { getErrorHandlerMiddleware } from '@map-colonies/error-express-handler';
 import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
 import { container, inject, injectable } from 'tsyringe';
-import { RequestLogger } from './common/middlewares/RequestLogger';
+
+import { RequestLogger } from './common/middlewares/requestLogger';
 import { Services } from './common/constants';
 import { IConfig, ILogger } from './common/interfaces';
 import { dumpMetadataRouterFactory } from './dumpMetadata/routes/dumpMetadataRouter';

@@ -6,7 +6,8 @@
     "level": "LOG_LEVEL"
   },
   "server": {
-    "port": "SERVER_PORT"
+    "port": "SERVER_PORT",
+    "secretToken": "SERVER_SECRET_TOKEN"
   },
   "db": {
     "type": "DB_TYPE",
