@@ -39,6 +39,7 @@ resources:
       memory: 128Mi
 route:
   enabled: true
+  enableTls: true
   path: /
 
 #internal

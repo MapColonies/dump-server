@@ -10,7 +10,7 @@ export class RequestBearerAuth {
   public constructor(@inject(Services.CONFIG) private readonly config: IConfig) {}
 
   public getBearerAuthMiddleware(): Handler {
-    const configuredToken = this.config.get('server.secretToken');
+    const configuredToken = this.config.get('application.authToken');
 
     return (req: Request, res: Response, next: NextFunction): Response | void => {
       const authHeader = req.headers.authorization;

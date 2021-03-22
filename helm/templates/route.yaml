@@ -13,6 +13,8 @@ spec:
   to:
     kind: Service
     name: {{ $releaseName }}-{{ $chartName }}
+  {{- if .Values.route.enableTls }}
   tls:
     termination: edge
+  {{- end }}
 {{- end -}}

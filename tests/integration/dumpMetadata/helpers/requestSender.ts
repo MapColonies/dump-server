@@ -6,9 +6,9 @@ import { get } from 'config';
 import { ServerBuilder } from '../../../../src/serverBuilder';
 import { DumpMetadataFilterQueryParams } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
 import { DumpMetadataCreation } from '../../../../src/dumpMetadata/models/dumpMetadata';
-import { IServerConfig } from '../../../../src/common/interfaces';
+import { IApplicationConfig } from '../../../../src/common/interfaces';
 
-const SECRET_TOKEN = get<IServerConfig>('server').secretToken;
+const SECRET_TOKEN = get<IApplicationConfig>('application').authToken;
 
 const setAuth = async (testRequest: supertest.Test): Promise<supertest.Test> => {
   return testRequest.set('Authorization', `Bearer ${SECRET_TOKEN}`);
