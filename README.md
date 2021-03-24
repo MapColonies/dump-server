@@ -4,6 +4,8 @@
 
 A RESTful API for querying and saving planet dump's metadata
 
+## Postgres prerequisite
+`uuid-ossp` extension must be installed in the database before you run the migrations.
 
 ## Run Migrations
 don't forget to run migrations before you start the app

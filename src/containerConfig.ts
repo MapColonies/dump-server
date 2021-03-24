@@ -5,12 +5,12 @@ import config from 'config';
 import { Probe } from '@map-colonies/mc-probe';
 import { MCLogger, ILoggerConfig, IServiceConfig } from '@map-colonies/mc-logger';
 
-import { initializeConnection } from './common/utils/db';
 import { Services } from './common/constants';
 import { promiseTimeout } from './common/utils/promiseTimeout';
 import { DB_TIMEOUT } from './common/constants';
 import { DumpMetadata } from './dumpMetadata/models/dumpMetadata';
-import { IObjectStorageConfig } from './common/interfaces';
+import { DbConfig, IObjectStorageConfig } from './common/interfaces';
+import { initConnection } from './common/db/connection';
 
 const healthCheck = (connection: Connection): (() => Promise<void>) => {
   return async (): Promise<void> => {
@@ -40,7 +40,8 @@ async function registerExternalValues(): Promise<void> {
   const objectStorage = config.get<IObjectStorageConfig>('objectStorage');
   container.register(Services.OBJECT_STORAGE, { useValue: objectStorage });
 
-  const connection = await initializeConnection();
+  const connectionOptions = config.get<DbConfig>('db');
+  const connection = await initConnection(connectionOptions);
   container.register(Connection, { useValue: connection });
   container.register('DumpMetadataRepository', { useValue: connection.getRepository(DumpMetadata) });
 

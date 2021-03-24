@@ -1,4 +1,5 @@
 import { ILogMethod } from '@map-colonies/mc-logger';
+import { ConnectionOptions } from 'typeorm';
 
 export interface IServerConfig {
   port: string;
@@ -7,6 +8,11 @@ export interface IServerConfig {
 export interface IApplicationConfig {
   authToken: string;
 }
+
+export type DbConfig = {
+  enableSslAuth: boolean;
+  sslPaths: { ca: string; cert: string; key: string };
+} & ConnectionOptions;
 
 export interface ILogger {
   log: ILogMethod;

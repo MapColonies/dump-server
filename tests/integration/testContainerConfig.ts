@@ -3,9 +3,9 @@ import config from 'config';
 import { Connection } from 'typeorm';
 
 import { Services } from '../../src/common/constants';
-import { ILogger } from '../../src/common/interfaces';
+import { DbConfig, ILogger } from '../../src/common/interfaces';
 import { DumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
-import { initializeConnection } from '../../src/common/utils/db';
+import { initConnection } from '../../src/common/db/connection';
 import { mockObjectStorageConfig } from '../helpers';
 
 async function registerTestValues(): Promise<void> {
@@ -16,7 +16,8 @@ async function registerTestValues(): Promise<void> {
 
   container.register(Services.OBJECT_STORAGE, { useValue: mockObjectStorageConfig });
 
-  const connection = await initializeConnection();
+  const connectionOptions = config.get<DbConfig>('db');
+  const connection = await initConnection(connectionOptions);
   await connection.synchronize();
   const repository = connection.getRepository(DumpMetadata);
   container.register(Connection, { useValue: connection });
