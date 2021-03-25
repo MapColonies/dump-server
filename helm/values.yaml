@@ -23,6 +23,12 @@ dbConfig:
   username: postgres
   password: password
   database: database
+  sslAuth:
+    enabled: false
+    secretName: secret-name
+    certFileName: name.crt
+    keyFileName: name.key
+    caFileName: name.crt
 objectStrorageConfig:
   host: s3Host
   port: 9000

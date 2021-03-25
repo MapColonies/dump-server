@@ -60,4 +60,16 @@ spec:
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
+          {{- if .Values.dbConfig.sslAuth.enabled }}
+          volumeMounts:
+            - name: cert-conf
+              mountPath: /tmp/certs
+              readOnly: true
+          {{- end }}
+      {{- if .Values.dbConfig.sslAuth.enabled }}
+      volumes:
+        - name: cert-conf
+          secret:
+            secretName: {{ .Values.dbConfig.sslAuth.secretName }}
+      {{- end }}
 {{- end -}}

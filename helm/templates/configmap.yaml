@@ -13,6 +13,14 @@ data:
   DB_HOST: {{ .Values.dbConfig.host }}
   DB_NAME: {{ .Values.dbConfig.database }}
   {{- end }}
+  {{- if .Values.dbConfig.sslAuth.enabled }}
+  DB_ENABLE_SSL_AUTH: "true"
+  DB_CERT_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.certFileName }}
+  DB_KEY_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.keyFileName }}
+  DB_CA_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.caFileName }}
+  {{- else }}
+  DB_ENABLE_SSL_AUTH: "false"
+  {{- end }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
   OBJECT_STORAGE_PROTOCOL: {{ .Values.objectStrorageConfig.protocol }}
   OBJECT_STORAGE_HOST: {{ .Values.objectStrorageConfig.host }}
