@@ -12,6 +12,7 @@ interface IntegrationDumpMetadataResponse extends Omit<DumpMetadataResponse, 'ti
 export const mockObjectStorageConfig = {
   protocol: 'http',
   host: 'some_storage_host',
+  projectId: 'some_project_id',
   port: '9000',
 };
 
@@ -47,8 +48,8 @@ export const createMultipleFakeDumpsMetadata = (amount: number): IDumpMetadata[]
 
 export const convertFakeToResponse = (fakeDumpMetadata: IDumpMetadata): DumpMetadataResponse => {
   const { bucket, ...restOfMetadata } = fakeDumpMetadata;
-  const { protocol, host, port } = mockObjectStorageConfig;
-  return { ...restOfMetadata, url: `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}` };
+  const { protocol, host, projectId, port } = mockObjectStorageConfig;
+  return { ...restOfMetadata, url: `${protocol}://${host}/${projectId}:${port}/${bucket}/${restOfMetadata.name}` };
 };
 
 export const convertFakesToResponses = (fakeDumpsMetadata: IDumpMetadata[]): DumpMetadataResponse[] => {

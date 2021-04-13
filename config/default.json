@@ -37,6 +37,7 @@
   "objectStorage": {
     "protocol": "http",
     "host": "some_object_storage_host",
+    "projectId": "",
     "port": 9000
   }
 }
