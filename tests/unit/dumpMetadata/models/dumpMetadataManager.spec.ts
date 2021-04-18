@@ -16,6 +16,7 @@ import {
 import { DumpNotFoundError } from '../../../../src/dumpMetadata/models/errors';
 import { DumpMetadataFilter } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
 import { getDefaultFilter } from '../../helpers';
+import { DumpNameAlreadyExistsError } from '../../../../src/common/errors';
 
 let dumpMetadataManager: DumpMetadataManager;
 
@@ -122,6 +123,7 @@ describe('dumpMetadataManager', () => {
 
   describe('#createDumpMetadata', () => {
     it('should resolves without errors', async () => {
+      findOne.mockResolvedValue(undefined);
       const dumpMetadata = createFakeDumpMetadata();
       const { id, ...rest } = dumpMetadata;
       insert.mockResolvedValue({ identifiers: [id] });
@@ -130,7 +132,17 @@ describe('dumpMetadataManager', () => {
       await expect(createPromise).resolves.not.toThrow();
     });
 
+    it('should reject if a dump name already exists on the bucket', async () => {
+      const dumpMetadata = createFakeDumpMetadata();
+      findOne.mockResolvedValue(dumpMetadata);
+      const { id, ...rest } = dumpMetadata;
+      const createPromise = dumpMetadataManager.createDumpMetadata(rest);
+
+      await expect(createPromise).rejects.toThrow(DumpNameAlreadyExistsError);
+    });
+
     it('should reject on DB error', async () => {
+      findOne.mockResolvedValue(undefined);
       insert.mockRejectedValue(new QueryFailedError('', undefined, new Error()));
 
       const dumpMetadata = createFakeDumpMetadata();

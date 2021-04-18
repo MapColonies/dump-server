@@ -99,6 +99,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         404:
           $ref: '#/components/responses/NotFound'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
         '5XX':
           $ref: '#/components/responses/UnexpectedError'
 components:
@@ -123,6 +125,12 @@ components:
             $ref: '#/components/schemas/error'
     UnexpectedError:
       description: Unexpected Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+    UnprocessableEntity:
+      description: Unprocessable Entity
       content:
         application/json:
           schema:

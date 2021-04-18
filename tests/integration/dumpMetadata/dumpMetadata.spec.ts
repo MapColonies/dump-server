@@ -383,13 +383,24 @@ describe('dumps', function () {
         expect(response.status).toBe(httpStatusCodes.UNAUTHORIZED);
         expect(response.body).toHaveProperty('message', 'Authorization header required');
       });
+
+      it('should return 422 status code if a dump with the same name already exists on the bucket', async function () {
+        const fakeDump = (await generateDumpsMetadataOnDb(1))[0];
+        const response = await requestSender.createDump(app, fakeDump);
+
+        expect(response.status).toBe(httpStatusCodes.UNPROCESSABLE_ENTITY);
+        expect(response.body).toHaveProperty(
+          'message',
+          `dump metadata on bucket: ${fakeDump.bucket} with the name: ${fakeDump.name} already exists.`
+        );
+      });
     });
 
     describe(`${SAD_PATH}`, function () {
       it('should return 500 status code if a database exception occurs', async function () {
         const errorMessage = 'An error occurred';
         const insertMock = jest.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
-        const mockedApp = requestSender.getMockedRepoApp({ insert: insertMock });
+        const mockedApp = requestSender.getMockedRepoApp({ insert: insertMock, findOne: jest.fn() });
 
         const response = await requestSender.createDump(mockedApp, createFakeDumpMetadata());
 

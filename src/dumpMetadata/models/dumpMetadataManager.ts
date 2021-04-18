@@ -4,6 +4,7 @@ import { FindManyOptions, Repository, FindOperator, MoreThanOrEqual, LessThanOrE
 import { Services } from '../../common/constants';
 import { ILogger, IObjectStorageConfig } from '../../common/interfaces';
 import { isStringUndefinedOrEmpty } from '../../common/utils';
+import { DumpNameAlreadyExistsError } from '../../common/errors';
 import { DumpMetadata, DumpMetadataCreation, DumpMetadataResponse, IDumpMetadata } from './dumpMetadata';
 import { DumpNotFoundError } from './errors';
 import { DumpMetadataFilter } from './dumpMetadataFilter';
@@ -36,6 +37,12 @@ export class DumpMetadataManager {
   }
 
   public async createDumpMetadata(newDumpMetadata: DumpMetadataCreation): Promise<string> {
+    const dumpExists = await this.repository.findOne({ where: [{ bucket: newDumpMetadata.bucket, name: newDumpMetadata.name }] });
+    if (dumpExists) {
+      throw new DumpNameAlreadyExistsError(
+        `dump metadata on bucket: ${newDumpMetadata.bucket} with the name: ${newDumpMetadata.name} already exists.`
+      );
+    }
     const insertionResult = await this.repository.insert(newDumpMetadata);
     return insertionResult.identifiers[0].id as string;
   }

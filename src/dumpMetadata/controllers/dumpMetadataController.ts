@@ -10,6 +10,7 @@ import { DumpMetadataCreation, DumpMetadataResponse } from '../models/dumpMetada
 import { DumpMetadataFilter, DumpMetadataFilterQueryParams } from '../models/dumpMetadataFilter';
 import { DumpMetadataManager } from '../models/dumpMetadataManager';
 import { DumpNotFoundError } from '../models/errors';
+import { DumpNameAlreadyExistsError } from '../../common/errors';
 
 interface DumpMetadataParams {
   dumpId: string;
@@ -65,6 +66,9 @@ export class DumpMetadataController {
       const createdId = await this.manager.createDumpMetadata(req.body);
       this.logger.log('info', `dump metadata created successfully with id: ${createdId}`);
     } catch (error) {
+      if (error instanceof DumpNameAlreadyExistsError) {
+        (error as HttpError).status = httpStatus.UNPROCESSABLE_ENTITY;
+      }
       return next(error);
     }
     return res.sendStatus(httpStatus.CREATED);
