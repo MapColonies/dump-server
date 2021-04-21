@@ -7,6 +7,8 @@ import { ServerBuilder } from '../../../../src/serverBuilder';
 import { DumpMetadataFilterQueryParams } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
 import { DumpMetadataCreation } from '../../../../src/dumpMetadata/models/dumpMetadata';
 import { IApplicationConfig } from '../../../../src/common/interfaces';
+import { Services } from '../../../../src/common/constants';
+import { getMockObjectStorageConfig } from '../../../helpers';
 
 const SECRET_TOKEN = get<IApplicationConfig>('application').authToken;
 
@@ -17,6 +19,11 @@ const setAuth = async (testRequest: supertest.Test): Promise<supertest.Test> => 
 export function getApp(): Application {
   const builder = container.resolve<ServerBuilder>(ServerBuilder);
   return builder.build();
+}
+
+export function getAppWithoutProjectId(): Application {
+  container.register(Services.OBJECT_STORAGE, { useValue: getMockObjectStorageConfig(false) });
+  return getApp();
 }
 
 export function getMockedRepoApp(repo: unknown): Application {

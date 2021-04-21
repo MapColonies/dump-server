@@ -6,7 +6,7 @@ import { Services } from '../../src/common/constants';
 import { DbConfig, ILogger } from '../../src/common/interfaces';
 import { DumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
 import { initConnection } from '../../src/common/db/connection';
-import { mockObjectStorageConfig } from '../helpers';
+import { getMockObjectStorageConfig } from '../helpers';
 
 async function registerTestValues(): Promise<void> {
   container.register(Services.CONFIG, { useValue: config });
@@ -14,7 +14,7 @@ async function registerTestValues(): Promise<void> {
   const mockLogger: ILogger = { log: jest.fn() };
   container.register(Services.LOGGER, { useValue: mockLogger });
 
-  container.register(Services.OBJECT_STORAGE, { useValue: mockObjectStorageConfig });
+  container.register(Services.OBJECT_STORAGE, { useValue: getMockObjectStorageConfig() });
 
   const connectionOptions = config.get<DbConfig>('db');
   const connection = await initConnection(connectionOptions);

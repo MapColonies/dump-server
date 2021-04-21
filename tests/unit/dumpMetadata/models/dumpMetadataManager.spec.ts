@@ -8,7 +8,7 @@ import {
   BOTTOM_FROM,
   TOP_TO,
   getDefaultFilterQueryParams,
-  mockObjectStorageConfig,
+  getMockObjectStorageConfig,
   convertFakesToResponses,
   convertFakeToResponse,
   sortByOrderFilter,
@@ -23,14 +23,15 @@ describe('dumpMetadataManager', () => {
   let find: jest.Mock;
   let findOne: jest.Mock;
   let insert: jest.Mock;
+  let repository: Repository<DumpMetadata>;
 
   beforeEach(function () {
     find = jest.fn();
     findOne = jest.fn();
     insert = jest.fn();
 
-    const repository = ({ find, findOne, insert } as unknown) as Repository<DumpMetadata>;
-    dumpMetadataManager = new DumpMetadataManager(repository, { log: jest.fn() }, mockObjectStorageConfig);
+    repository = ({ find, findOne, insert } as unknown) as Repository<DumpMetadata>;
+    dumpMetadataManager = new DumpMetadataManager(repository, { log: jest.fn() }, getMockObjectStorageConfig());
   });
 
   afterEach(() => {
@@ -85,6 +86,18 @@ describe('dumpMetadataManager', () => {
       const getPromise = dumpMetadataManager.getDumpMetadataById(dumpMetadata.id);
 
       const dumpMetadataResponse = convertFakeToResponse(dumpMetadata);
+
+      await expect(getPromise).resolves.toStrictEqual(dumpMetadataResponse);
+    });
+
+    it('should return the dumpMetadata without projectId', async function () {
+      const dumpMetadata = createFakeDumpMetadata();
+      findOne.mockResolvedValue(dumpMetadata);
+
+      const dumpMetadataManagerWithoutProjectId = new DumpMetadataManager(repository, { log: jest.fn() }, getMockObjectStorageConfig(false));
+      const getPromise = dumpMetadataManagerWithoutProjectId.getDumpMetadataById(dumpMetadata.id);
+
+      const dumpMetadataResponse = convertFakeToResponse(dumpMetadata, false);
 
       await expect(getPromise).resolves.toStrictEqual(dumpMetadataResponse);
     });

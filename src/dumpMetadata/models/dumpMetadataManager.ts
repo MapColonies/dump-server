@@ -41,7 +41,7 @@ export class DumpMetadataManager {
 
   private getUrlHeader(): string {
     const { protocol, host, projectId, port } = this.objectStorageConfig;
-    if (projectId != undefined) {
+    if (projectId != undefined && projectId.length > 0) {
       return `${protocol}://${host}/${projectId}:${port}`;
     }
     return `${protocol}://${host}:${port}`;
