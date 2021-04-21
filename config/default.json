@@ -14,6 +14,12 @@
       "payload": {
         "limit": "1mb"
       }
+    },
+    "response": {
+      "compression": {
+        "enabled": true,
+        "options": null
+      }
     }
   },
   "application": {
@@ -37,6 +43,7 @@
   "objectStorage": {
     "protocol": "http",
     "host": "some_object_storage_host",
+    "projectId": "",
     "port": 9000
   }
 }

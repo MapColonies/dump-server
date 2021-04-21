@@ -11,7 +11,7 @@ interface IntegrationDumpMetadataResponse extends Omit<DumpMetadataResponse, 'ti
 }
 
 export const getMockObjectStorageConfig = (includeProjectId = true): IObjectStorageConfig => {
-  const objectStorageConfig: IObjectStorageConfig = { protocol: 'http', host: 'some_storage_host', projectId: '', port: '9000' };
+  const objectStorageConfig: IObjectStorageConfig = { protocol: 'http', host: 'some_storage_host', port: '9000' };
   if (includeProjectId) {
     objectStorageConfig.projectId = 'some_project_id';
   }
@@ -50,11 +50,13 @@ export const createMultipleFakeDumpsMetadata = (amount: number): IDumpMetadata[]
 
 export const convertFakeToResponse = (fakeDumpMetadata: IDumpMetadata, includeProjectId = true): DumpMetadataResponse => {
   const { bucket, ...restOfMetadata } = fakeDumpMetadata;
-  const { protocol, host, projectId, port } = getMockObjectStorageConfig(includeProjectId);
+  const { protocol, host, projectId, port } = getMockObjectStorageConfig();
+
   let url = `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`;
-  if (projectId !== undefined && projectId.length > 0) {
+  if (includeProjectId && projectId != undefined) {
     url = `${protocol}://${host}/${projectId}:${port}/${bucket}/${restOfMetadata.name}`;
   }
+
   return { ...restOfMetadata, url };
 };
 
