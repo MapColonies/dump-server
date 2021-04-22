@@ -37,8 +37,8 @@ async function registerExternalValues(): Promise<void> {
   const logger = new MCLogger(loggerConfig, service);
   container.register(Services.LOGGER, { useValue: logger });
 
-  const objectStorage = config.get<IObjectStorageConfig>('objectStorage');
-  container.register(Services.OBJECT_STORAGE, { useValue: objectStorage });
+  const objectStorageConfig = config.get<IObjectStorageConfig>('objectStorage');
+  container.register(Services.OBJECT_STORAGE, { useValue: objectStorageConfig });
 
   const connectionOptions = config.get<DbConfig>('db');
   const connection = await initConnection(connectionOptions);

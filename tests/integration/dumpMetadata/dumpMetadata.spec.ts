@@ -29,6 +29,7 @@ import * as requestSender from './helpers/requestSender';
 import { getRepositoryFromContainer } from './helpers/db';
 
 let app: Application;
+let appWithoutProjectId: Application;
 let repository: Repository<DumpMetadata>;
 
 describe('dumps', function () {
@@ -222,6 +223,9 @@ describe('dumps', function () {
     });
   });
 
+  beforeAll(() => {
+    appWithoutProjectId = requestSender.getAppWithoutProjectId();
+  });
   describe('GET /dumps/:dumpId', function () {
     describe(`${HAPPY_PATH}`, function () {
       it('should return 200 status code and the dump metadata', async function () {
@@ -231,6 +235,18 @@ describe('dumps', function () {
         const integrationDumpMetadata = convertToISOTimestamp(dumpResponse);
 
         const response = await requestSender.getDumpMetadataById(app, fakeDumpMetadata.id);
+
+        expect(response.status).toBe(httpStatusCodes.OK);
+        expect(response.body).toMatchObject(integrationDumpMetadata);
+      });
+
+      it('should return 200 status code and the dump metadata without projectId', async function () {
+        const fakeDumpMetadata = (await generateDumpsMetadataOnDb(1))[0];
+
+        const dumpResponse = convertFakeToResponse(fakeDumpMetadata, false);
+        const integrationDumpMetadata = convertToISOTimestamp(dumpResponse);
+
+        const response = await requestSender.getDumpMetadataById(appWithoutProjectId, fakeDumpMetadata.id);
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.body).toMatchObject(integrationDumpMetadata);

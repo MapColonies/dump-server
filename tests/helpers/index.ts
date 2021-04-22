@@ -1,5 +1,6 @@
 import faker from 'faker';
 import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '../../src/common/constants';
+import { IObjectStorageConfig } from '../../src/common/interfaces';
 
 import { DumpMetadataResponse, IDumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
 import { DumpMetadataFilterQueryParams } from '../../src/dumpMetadata/models/dumpMetadataFilter';
@@ -9,11 +10,12 @@ interface IntegrationDumpMetadataResponse extends Omit<DumpMetadataResponse, 'ti
   timestamp: string;
 }
 
-export const mockObjectStorageConfig = {
-  protocol: 'http',
-  host: 'some_storage_host',
-  projectId: 'some_project_id',
-  port: '9000',
+export const getMockObjectStorageConfig = (includeProjectId = true): IObjectStorageConfig => {
+  const objectStorageConfig: IObjectStorageConfig = { protocol: 'http', host: 'some_storage_host', port: '9000' };
+  if (includeProjectId) {
+    objectStorageConfig.projectId = 'some_project_id';
+  }
+  return objectStorageConfig;
 };
 
 export const DEFAULT_SORT = 'desc';
@@ -46,10 +48,16 @@ export const createMultipleFakeDumpsMetadata = (amount: number): IDumpMetadata[]
   return fakeData;
 };
 
-export const convertFakeToResponse = (fakeDumpMetadata: IDumpMetadata): DumpMetadataResponse => {
+export const convertFakeToResponse = (fakeDumpMetadata: IDumpMetadata, includeProjectId = true): DumpMetadataResponse => {
   const { bucket, ...restOfMetadata } = fakeDumpMetadata;
-  const { protocol, host, projectId, port } = mockObjectStorageConfig;
-  return { ...restOfMetadata, url: `${protocol}://${host}/${projectId}:${port}/${bucket}/${restOfMetadata.name}` };
+  const { protocol, host, projectId, port } = getMockObjectStorageConfig();
+
+  let url = `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`;
+  if (includeProjectId && projectId != undefined) {
+    url = `${protocol}://${host}/${projectId}:${port}/${bucket}/${restOfMetadata.name}`;
+  }
+
+  return { ...restOfMetadata, url };
 };
 
 export const convertFakesToResponses = (fakeDumpsMetadata: IDumpMetadata[]): DumpMetadataResponse[] => {
