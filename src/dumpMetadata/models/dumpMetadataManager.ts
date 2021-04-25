@@ -3,6 +3,7 @@ import { FindManyOptions, Repository, FindOperator, MoreThanOrEqual, LessThanOrE
 
 import { Services } from '../../common/constants';
 import { ILogger, IObjectStorageConfig } from '../../common/interfaces';
+import { isStringUndefinedOrEmpty } from '../../common/utils';
 import { DumpMetadata, DumpMetadataCreation, DumpMetadataResponse, IDumpMetadata } from './dumpMetadata';
 import { DumpNotFoundError } from './errors';
 import { DumpMetadataFilter } from './dumpMetadataFilter';
@@ -41,10 +42,10 @@ export class DumpMetadataManager {
 
   private getUrlHeader(): string {
     const { protocol, host, projectId, port } = this.objectStorageConfig;
-    if (projectId != undefined && projectId.length > 0) {
-      return `${protocol}://${host}/${projectId}:${port}`;
+    if (isStringUndefinedOrEmpty(projectId)) {
+      return `${protocol}://${host}:${port}`;
     }
-    return `${protocol}://${host}:${port}`;
+    return `${protocol}://${host}/${projectId as string}:${port}`;
   }
 
   private convertDumpMetadataToDumpMetadataResponse(dumpMetadata: IDumpMetadata): DumpMetadataResponse {
