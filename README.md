@@ -1,8 +1,20 @@
 # dump-server
 
-----------------------------------------
+----------------------------------
 
-A RESTful API for querying and saving planet dump's metadata
+![badge-alerts-lgtm](https://img.shields.io/lgtm/alerts/github/MapColonies/dump-server?style=for-the-badge)
+
+![grade-badge-lgtm](https://img.shields.io/lgtm/grade/javascript/github/MapColonies/dump-server?style=for-the-badge)
+
+![snyk](https://img.shields.io/snyk/vulnerabilities/github/MapColonies/dump-server?style=for-the-badge)
+
+----------------------------------
+
+
+A RESTful API for querying and saving planet dump's metadata.
+
+## API
+Checkout the OpenAPI spec [here](/openapi3.yaml)
 
 ## Postgres prerequisite
 `uuid-ossp` extension must be installed in the database before you run the migrations.
