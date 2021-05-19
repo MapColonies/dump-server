@@ -60,8 +60,8 @@ export const convertFakeToResponse = (fakeDumpMetadata: IDumpMetadata, includePr
   return { ...restOfMetadata, url };
 };
 
-export const convertFakesToResponses = (fakeDumpsMetadata: IDumpMetadata[]): DumpMetadataResponse[] => {
-  return fakeDumpsMetadata.map((fake) => convertFakeToResponse(fake));
+export const convertFakesToResponses = (fakeDumpsMetadata: IDumpMetadata[], includeProjectId = true): DumpMetadataResponse[] => {
+  return fakeDumpsMetadata.map((fake) => convertFakeToResponse(fake, includeProjectId));
 };
 
 export const convertToISOTimestamp = (response: DumpMetadataResponse): IntegrationDumpMetadataResponse => {

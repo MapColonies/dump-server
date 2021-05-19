@@ -60,6 +60,24 @@ describe('dumpMetadataManager', () => {
         await expect(getByFilterPromise).resolves.toEqual(sortByOrderFilter(dumpsMetadataResponses, filter.sort));
       }
     );
+    it.each([
+      [BOTTOM_FROM, undefined],
+      [undefined, TOP_TO],
+      [BOTTOM_FROM, TOP_TO],
+      [undefined, undefined],
+    ])('should return the correct response with no projectId set in url', async function (from: Date | undefined, to: Date | undefined) {
+      const dumpMetadataManagerNoProjectId = new DumpMetadataManager(repository, { log: jest.fn() }, getMockObjectStorageConfig(false));
+      const dumpsMetadata = [createFakeDumpMetadata(), createFakeDumpMetadata(), createFakeDumpMetadata()];
+      const filter: DumpMetadataFilter = { ...getDefaultFilterQueryParams(), from, to };
+
+      find.mockReturnValue(sortByOrderFilter(dumpsMetadata, filter.sort));
+
+      const getByFilterPromise = dumpMetadataManagerNoProjectId.getDumpsMetadataByFilter(filter);
+
+      const dumpsMetadataResponses: DumpMetadataResponse[] = convertFakesToResponses(dumpsMetadata, false);
+
+      await expect(getByFilterPromise).resolves.toEqual(sortByOrderFilter(dumpsMetadataResponses, filter.sort));
+    });
 
     it('should return the empty array response', async function () {
       const dumpsMetadata: IDumpMetadata[] = [];
