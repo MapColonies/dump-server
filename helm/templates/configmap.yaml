@@ -22,7 +22,8 @@ data:
   DB_ENABLE_SSL_AUTH: "false"
   {{- end }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
-  OBJECT_STORAGE_PROTOCOL: {{ .Values.objectStrorageConfig.protocol }}
-  OBJECT_STORAGE_HOST: {{ .Values.objectStrorageConfig.host }}
-  OBJECT_STORAGE_PORT: {{ .Values.objectStrorageConfig.port  | quote }}
+  OBJECT_STORAGE_PROTOCOL: {{ .Values.objectStorageConfig.protocol }}
+  OBJECT_STORAGE_HOST: {{ .Values.objectStorageConfig.host }}
+  OBJECT_STORAGE_PORT: {{ .Values.objectStorageConfig.port  | quote }}
+  OBJECT_STORAGE_PROJECT_ID: {{ .Values.objectStorageConfig.projectId }}
 {{- end -}}

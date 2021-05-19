@@ -29,10 +29,11 @@ dbConfig:
     certFileName: name.crt
     keyFileName: name.key
     caFileName: name.crt
-objectStrorageConfig:
+objectStorageConfig:
   host: s3Host
   port: 9000
   protocol: http
+  projectId: 373e47ef2a58d
 initialDelaySeconds: 600
 resources:
   enabled: false
