@@ -10,7 +10,7 @@ interface IntegrationDumpMetadataResponse extends Omit<DumpMetadataResponse, 'ti
   timestamp: string;
 }
 
-export const getMockObjectStorageConfig = (includeProjectId = true): IObjectStorageConfig => {
+export const getMockObjectStorageConfig = (includeProjectId = false): IObjectStorageConfig => {
   const objectStorageConfig: IObjectStorageConfig = { protocol: 'http', host: 'some_storage_host', port: '9000' };
   if (includeProjectId) {
     objectStorageConfig.projectId = 'some_project_id';
@@ -54,7 +54,7 @@ export const convertFakeToResponse = (fakeDumpMetadata: IDumpMetadata, includePr
 
   let url = `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`;
   if (includeProjectId && projectId != undefined) {
-    url = `${protocol}://${host}/${projectId}:${port}/${bucket}/${restOfMetadata.name}`;
+    url = `${protocol}://${host}/${port}/${projectId}:${bucket}/${restOfMetadata.name}`;
   }
 
   return { ...restOfMetadata, url };

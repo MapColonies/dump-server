@@ -1,3 +1,3 @@
-export const isStringUndefinedOrEmpty = (input: string | undefined): boolean => {
+export const isStringUndefinedOrEmpty = (input: string | undefined): input is undefined => {
   return input === undefined || input.length === 0;
 };

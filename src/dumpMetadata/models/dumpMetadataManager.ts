@@ -48,16 +48,18 @@ export class DumpMetadataManager {
   }
 
   private getUrlHeader(): string {
-    const { protocol, host, projectId, port } = this.objectStorageConfig;
-    if (isStringUndefinedOrEmpty(projectId)) {
-      return `${protocol}://${host}:${port}`;
-    }
-    return `${protocol}://${host}/${projectId as string}:${port}`;
+    const { protocol, host, port } = this.objectStorageConfig;
+    return `${protocol}://${host}:${port}`;
   }
 
   private convertDumpMetadataToDumpMetadataResponse(dumpMetadata: IDumpMetadata): DumpMetadataResponse {
     const { bucket, ...restOfMetadata } = dumpMetadata;
-    const url = `${this.urlHeader}/${bucket}/${restOfMetadata.name}`;
+    const { projectId } = this.objectStorageConfig;
+    let bucketCombined: string = bucket;
+    if (!isStringUndefinedOrEmpty(projectId)) {
+      bucketCombined = `${projectId}:${bucket}`;
+    }
+    const url = `${this.urlHeader}/${bucketCombined}/${restOfMetadata.name}`;
     return { ...restOfMetadata, url };
   }
 
