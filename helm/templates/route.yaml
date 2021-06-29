@@ -1,7 +1,7 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "dump-server.name" . -}}
-{{- $cloudProviderName := include "dump-server.cloudProviderName" . -}}
-{{- if and (and (.Values.enabled) (ne $cloudProviderName "minikube")) (.Values.route.enabled) -}}
+{{- $cloudProviderFlavor := include "dump-server.cloudProviderFlavor" . -}}
+{{- if and (and (.Values.enabled) (ne $cloudProviderFlavor "minikube")) (.Values.route.enabled) -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:

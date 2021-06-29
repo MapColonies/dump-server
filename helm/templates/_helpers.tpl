@@ -60,11 +60,11 @@ Returns the environment from global if exists or from the chart's values, defaul
 {{/*
 Returns the cloud provider name from global if exists or from the chart's values, defaults to minikube
 */}}
-{{- define "dump-server.cloudProviderName" -}}
-{{- if .Values.global.cloudProvider.name }}
-    {{- .Values.global.cloudProvider.name -}}
+{{- define "dump-server.cloudProviderFlavor" -}}
+{{- if .Values.global.cloudProvider.flavor }}
+    {{- .Values.global.cloudProvider.flavor -}}
 {{- else if .Values.cloudProvider -}}
-    {{- .Values.cloudProvider.name | default "minikube" -}}
+    {{- .Values.cloudProvider.flavor | default "minikube" -}}
 {{- else -}}
     {{ "minikube" }}
 {{- end -}}

@@ -1,6 +1,6 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "dump-server.name" . -}}
-{{- $cloudProviderName := include "dump-server.cloudProviderName" . -}}
+{{- $cloudProviderFlavor := include "dump-server.cloudProviderFlavor" . -}}
 {{- $cloudProviderDockerRegistryUrl := include "dump-server.cloudProviderDockerRegistryUrl" . -}}
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
@@ -32,10 +32,10 @@ spec:
       containers:
         - name: {{ $releaseName }}-{{ $chartName }}-deployment
           {{- with .Values.image }}
-          {{- if eq $cloudProviderName "azure" }}
+          {{- if eq $cloudProviderFlavor "azure" }}
           image: {{ $cloudProviderDockerRegistryUrl }}/{{ .repository }}:{{ .tag }}
           {{- end }}
-          {{- if eq $cloudProviderName "minikube" }}
+          {{- if eq $cloudProviderFlavor "minikube" }}
           image: {{ .repository }}:{{ .tag }}
           {{- end }}
           {{- end }}
