@@ -5,8 +5,11 @@
     "rawPath": "/api",
     "uiPath": "/api"
   },
-  "logger": {
-    "level": "info"
+  "telemetry": {
+    "logger": {
+      "level": "info",
+      "prettyPrint": false
+    }
   },
   "server": {
     "port": "8080",
@@ -30,14 +33,14 @@
     "host": "localhost",
     "port": 5432,
     "username": "postgres",
-    "password": "1234",
+    "password": "postgres",
     "enableSslAuth": false,
     "sslPaths": {
       "ca": "",
       "key": "",
       "cert": ""
     },
-    "database": "postgres",
+    "database": "dump-server",
     "schema": "dump_server"
   },
   "objectStorage": {

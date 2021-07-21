@@ -3,9 +3,9 @@ import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { parseISO } from 'date-fns';
+import { Logger } from '@map-colonies/js-logger';
 
 import { Services } from '../../common/constants';
-import { ILogger } from '../../common/interfaces';
 import { DumpMetadataCreation, DumpMetadataResponse } from '../models/dumpMetadata';
 import { DumpMetadataFilter, DumpMetadataFilterQueryParams } from '../models/dumpMetadataFilter';
 import { DumpMetadataManager } from '../models/dumpMetadataManager';
@@ -25,7 +25,7 @@ type PostDumpMetadataHandler = RequestHandler<Record<string, string>, undefined,
 @injectable()
 export class DumpMetadataController {
   public constructor(
-    @inject(Services.LOGGER) private readonly logger: ILogger,
+    @inject(Services.LOGGER) private readonly logger: Logger,
     @inject(DumpMetadataManager) private readonly manager: DumpMetadataManager
   ) {}
   public getById: GetDumpMetadataByIdHandler = async (req, res, next) => {
