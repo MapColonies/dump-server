@@ -1,5 +1,6 @@
 import { Repository, QueryFailedError } from 'typeorm';
 import faker from 'faker';
+import jsLogger from '@map-colonies/js-logger';
 
 import { DumpMetadata, DumpMetadataResponse, IDumpMetadata } from '../../../../src/dumpMetadata/models/dumpMetadata';
 import { DumpMetadataManager } from '../../../../src/dumpMetadata/models/dumpMetadataManager';
@@ -32,7 +33,7 @@ describe('dumpMetadataManager', () => {
     insert = jest.fn();
 
     repository = ({ find, findOne, insert } as unknown) as Repository<DumpMetadata>;
-    dumpMetadataManager = new DumpMetadataManager(repository, { log: jest.fn() }, getMockObjectStorageConfig());
+    dumpMetadataManager = new DumpMetadataManager(repository, jsLogger({ enabled: false }), getMockObjectStorageConfig());
   });
 
   afterEach(() => {
@@ -66,7 +67,7 @@ describe('dumpMetadataManager', () => {
       [BOTTOM_FROM, TOP_TO],
       [undefined, undefined],
     ])('should return the correct response with no projectId set in url', async function (from: Date | undefined, to: Date | undefined) {
-      const dumpMetadataManagerNoProjectId = new DumpMetadataManager(repository, { log: jest.fn() }, getMockObjectStorageConfig(false));
+      const dumpMetadataManagerNoProjectId = new DumpMetadataManager(repository, jsLogger({ enabled: false }), getMockObjectStorageConfig(false));
       const dumpsMetadata = [createFakeDumpMetadata(), createFakeDumpMetadata(), createFakeDumpMetadata()];
       const filter: DumpMetadataFilter = { ...getDefaultFilterQueryParams(), from, to };
 
@@ -113,7 +114,11 @@ describe('dumpMetadataManager', () => {
       const dumpMetadata = createFakeDumpMetadata();
       findOne.mockResolvedValue(dumpMetadata);
 
-      const dumpMetadataManagerWithoutProjectId = new DumpMetadataManager(repository, { log: jest.fn() }, getMockObjectStorageConfig(false));
+      const dumpMetadataManagerWithoutProjectId = new DumpMetadataManager(
+        repository,
+        jsLogger({ enabled: false }),
+        getMockObjectStorageConfig(false)
+      );
       const getPromise = dumpMetadataManagerWithoutProjectId.getDumpMetadataById(dumpMetadata.id);
 
       const dumpMetadataResponse = convertFakeToResponse(dumpMetadata, false);

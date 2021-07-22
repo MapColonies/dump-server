@@ -16,10 +16,7 @@ import { dumpMetadataRouterFactory } from './dumpMetadata/routes/dumpMetadataRou
 export class ServerBuilder {
   private readonly serverInstance: express.Application;
 
-  public constructor(
-    @inject(Services.CONFIG) private readonly config: IConfig,
-    @inject(Services.LOGGER) private readonly logger: Logger
-  ) {
+  public constructor(@inject(Services.CONFIG) private readonly config: IConfig, @inject(Services.LOGGER) private readonly logger: Logger) {
     this.serverInstance = express();
   }
 

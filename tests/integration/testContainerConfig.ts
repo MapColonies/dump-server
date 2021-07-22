@@ -1,9 +1,10 @@
 import { container } from 'tsyringe';
 import config from 'config';
 import { Connection } from 'typeorm';
+import jsLogger from '@map-colonies/js-logger';
 
 import { Services } from '../../src/common/constants';
-import { DbConfig, ILogger } from '../../src/common/interfaces';
+import { DbConfig } from '../../src/common/interfaces';
 import { DumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
 import { initConnection } from '../../src/common/db/connection';
 import { getMockObjectStorageConfig } from '../helpers';
@@ -11,8 +12,7 @@ import { getMockObjectStorageConfig } from '../helpers';
 async function registerTestValues(): Promise<void> {
   container.register(Services.CONFIG, { useValue: config });
 
-  const mockLogger: ILogger = { log: jest.fn() };
-  container.register(Services.LOGGER, { useValue: mockLogger });
+  container.register(Services.LOGGER, { useValue: jsLogger({ enabled: false }) });
 
   container.register(Services.OBJECT_STORAGE, { useValue: getMockObjectStorageConfig() });
 
