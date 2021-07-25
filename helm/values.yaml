@@ -22,6 +22,15 @@ env:
   targetPort: 8080
   protocol: TCP
   logLevel: info
+  requestPayloadLimit: 1mb
+  responseCompressionEnabled: true
+  tracing:
+    enabled: false
+    url: 'http://localhost:55681/v1/trace'
+  metrics:
+    enabled: false
+    interval: 15000
+    url: 'http://localhost:55681/v1/metrics'
 
 dbConfig:
   host: postgresHost
@@ -40,7 +49,6 @@ objectStorageConfig:
   port: 9000
   protocol: http
   projectId: 373e47ef2a58d
-
 
 resources:
   enabled: false
