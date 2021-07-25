@@ -2,7 +2,7 @@ import faker from 'faker';
 import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '../../src/common/constants';
 import { IObjectStorageConfig } from '../../src/common/interfaces';
 
-import { DumpMetadataResponse, IDumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
+import { DumpMetadataResponse, IDumpMetadata } from '../../src/dumpMetadata/models/DumpMetadata';
 import { DumpMetadataFilterQueryParams } from '../../src/dumpMetadata/models/dumpMetadataFilter';
 import { SortFilter } from '../../src/dumpMetadata/models/dumpMetadataFilter';
 

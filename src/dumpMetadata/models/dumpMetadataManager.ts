@@ -6,7 +6,7 @@ import { Services } from '../../common/constants';
 import { IObjectStorageConfig } from '../../common/interfaces';
 import { isStringUndefinedOrEmpty } from '../../common/utils';
 import { DumpNameAlreadyExistsError } from '../../common/errors';
-import { DumpMetadata, DumpMetadataCreation, DumpMetadataResponse, IDumpMetadata } from './dumpMetadata';
+import { DumpMetadata, DumpMetadataCreation, DumpMetadataResponse, IDumpMetadata } from './DumpMetadata';
 import { DumpNotFoundError } from './errors';
 import { DumpMetadataFilter } from './dumpMetadataFilter';
 

@@ -1,11 +1,11 @@
 import { Application } from 'express';
-import { container } from 'tsyringe';
+import { container, DependencyContainer } from 'tsyringe';
 import { QueryFailedError, Repository } from 'typeorm';
 import faker from 'faker';
 import httpStatusCodes from 'http-status-codes';
 import { isWithinInterval, isAfter, isBefore } from 'date-fns';
 
-import { DumpMetadata, DumpMetadataCreation } from '../../../src/dumpMetadata/models/dumpMetadata';
+import { DumpMetadata, DumpMetadataCreation } from '../../../src/dumpMetadata/models/DumpMetadata';
 import { registerTestValues } from '../testContainerConfig';
 import { HAPPY_PATH, SAD_PATH, BAD_PATH } from '../constants';
 import {
@@ -31,12 +31,13 @@ import { getRepositoryFromContainer } from './helpers/db';
 let app: Application;
 let appWithoutProjectId: Application;
 let repository: Repository<DumpMetadata>;
+let childContainer: DependencyContainer;
 
 describe('dumps', function () {
   beforeAll(async function () {
-    await registerTestValues();
-    app = requestSender.getApp();
-    repository = getRepositoryFromContainer(DumpMetadata);
+    childContainer = await registerTestValues();
+    app = requestSender.getApp(childContainer);
+    repository = getRepositoryFromContainer(childContainer, DumpMetadata);
     await repository.clear();
   });
   afterEach(async function () {
@@ -48,7 +49,7 @@ describe('dumps', function () {
   describe('GET /dumps', function () {
     describe(`${HAPPY_PATH}`, function () {
       it('should return 200 status code and the dumps queried by the default filter with given empty filter', async function () {
-        const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT + 1);
+        const fakeData = await generateDumpsMetadataOnDb(childContainer, DEFAULT_LIMIT + 1);
 
         const fakeResponses = convertFakesToResponses(fakeData);
 
@@ -66,7 +67,7 @@ describe('dumps', function () {
         const to = faker.date.between(from, TOP_TO);
         const filter: DumpMetadataFilterQueryParams = { limit: DEFAULT_LIMIT, sort: 'asc', from: from.toISOString(), to: to.toISOString() };
 
-        const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT + 1);
+        const fakeData = await generateDumpsMetadataOnDb(childContainer, DEFAULT_LIMIT + 1);
 
         // filter by times
         const fakeDataFiltered = fakeData.filter((fakeDump) => isWithinInterval(fakeDump.timestamp, { start: from, end: to }));
@@ -91,7 +92,7 @@ describe('dumps', function () {
 
       it('should return 200 status code and the less than requested limit if there are less in db', async function () {
         const amountOfDumpsToCreate = DEFAULT_LIMIT - 1;
-        const fakeData = await generateDumpsMetadataOnDb(amountOfDumpsToCreate);
+        const fakeData = await generateDumpsMetadataOnDb(childContainer, amountOfDumpsToCreate);
 
         const fakeResponses = convertFakesToResponses(fakeData);
         const integrationDumpsMetadata = fakeResponses.map((response) => convertToISOTimestamp(response));
@@ -104,7 +105,7 @@ describe('dumps', function () {
       });
 
       it('should return 200 status code and only the top requested limit by the requested sort', async function () {
-        const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT + 1);
+        const fakeData = await generateDumpsMetadataOnDb(childContainer, DEFAULT_LIMIT + 1);
         const filter = getDefaultFilterQueryParams();
 
         const fakeResponses = convertFakesToResponses(fakeData);
@@ -118,7 +119,7 @@ describe('dumps', function () {
       });
 
       it('should return 200 status code and empty response when requesting filter with a later from than to', async function () {
-        await generateDumpsMetadataOnDb(1);
+        await generateDumpsMetadataOnDb(childContainer, 1);
         const filter: DumpMetadataFilterQueryParams = { ...getDefaultFilterQueryParams(), from: TOP_TO.toISOString(), to: BOTTOM_FROM.toISOString() };
 
         const response = await requestSender.getDumpsMetadataByFilter(app, filter);
@@ -128,7 +129,7 @@ describe('dumps', function () {
       });
 
       it('should return 200 status code and response with only dumps correlating to the from filter', async function () {
-        const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT);
+        const fakeData = await generateDumpsMetadataOnDb(childContainer, DEFAULT_LIMIT);
 
         const from = createFakeDate();
         const filter: DumpMetadataFilterQueryParams = { ...getDefaultFilterQueryParams(), from: from.toISOString() };
@@ -144,7 +145,7 @@ describe('dumps', function () {
       });
 
       it('should return 200 status code and response with only dumps correlating to the to filter', async function () {
-        const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT);
+        const fakeData = await generateDumpsMetadataOnDb(childContainer, DEFAULT_LIMIT);
         const to = createFakeDate();
         const filter: DumpMetadataFilterQueryParams = { ...getDefaultFilterQueryParams(), to: to.toISOString() };
 
@@ -159,7 +160,7 @@ describe('dumps', function () {
       });
 
       it('should return 200 status code and the data should be sorted ascending', async function () {
-        const fakeData = await generateDumpsMetadataOnDb(DEFAULT_LIMIT);
+        const fakeData = await generateDumpsMetadataOnDb(childContainer, DEFAULT_LIMIT);
         const filter: DumpMetadataFilterQueryParams = { ...getDefaultFilterQueryParams(), sort: 'asc' };
 
         const fakeResponses = convertFakesToResponses(fakeData);
@@ -213,7 +214,7 @@ describe('dumps', function () {
       it('should return 500 status code if a database exception occurs', async function () {
         const errorMessage = 'An error occurred';
         const findMock = jest.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
-        const mockedApp = requestSender.getMockedRepoApp({ find: findMock });
+        const mockedApp = requestSender.getMockedRepoApp(childContainer, { find: findMock });
 
         const response = await requestSender.getDumpsMetadataByFilter(mockedApp, {});
 
@@ -224,12 +225,12 @@ describe('dumps', function () {
   });
 
   beforeAll(() => {
-    appWithoutProjectId = requestSender.getAppWithoutProjectId();
+    appWithoutProjectId = requestSender.getAppWithoutProjectId(childContainer);
   });
   describe('GET /dumps/:dumpId', function () {
     describe(`${HAPPY_PATH}`, function () {
       it('should return 200 status code and the dump metadata', async function () {
-        const fakeDumpMetadata = (await generateDumpsMetadataOnDb(1))[0];
+        const fakeDumpMetadata = (await generateDumpsMetadataOnDb(childContainer, 1))[0];
 
         const dumpResponse = convertFakeToResponse(fakeDumpMetadata);
         const integrationDumpMetadata = convertToISOTimestamp(dumpResponse);
@@ -241,7 +242,7 @@ describe('dumps', function () {
       });
 
       it('should return 200 status code and the dump metadata without projectId', async function () {
-        const fakeDumpMetadata = (await generateDumpsMetadataOnDb(1))[0];
+        const fakeDumpMetadata = (await generateDumpsMetadataOnDb(childContainer, 1))[0];
 
         const dumpResponse = convertFakeToResponse(fakeDumpMetadata, false);
         const integrationDumpMetadata = convertToISOTimestamp(dumpResponse);
@@ -273,7 +274,7 @@ describe('dumps', function () {
       it('should return 500 status code if a database exception occurs', async function () {
         const errorMessage = 'An error occurred';
         const findOneMock = jest.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
-        const mockedApp = requestSender.getMockedRepoApp({ findOne: findOneMock });
+        const mockedApp = requestSender.getMockedRepoApp(childContainer, { findOne: findOneMock });
 
         const response = await requestSender.getDumpMetadataById(mockedApp, faker.random.uuid());
 
@@ -385,7 +386,7 @@ describe('dumps', function () {
       });
 
       it('should return 422 status code if a dump with the same name already exists on the bucket', async function () {
-        const fakeDump = (await generateDumpsMetadataOnDb(1))[0];
+        const fakeDump = (await generateDumpsMetadataOnDb(childContainer, 1))[0];
         const response = await requestSender.createDump(app, fakeDump);
 
         expect(response.status).toBe(httpStatusCodes.UNPROCESSABLE_ENTITY);
@@ -400,7 +401,7 @@ describe('dumps', function () {
       it('should return 500 status code if a database exception occurs', async function () {
         const errorMessage = 'An error occurred';
         const insertMock = jest.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
-        const mockedApp = requestSender.getMockedRepoApp({ insert: insertMock, findOne: jest.fn() });
+        const mockedApp = requestSender.getMockedRepoApp(childContainer, { insert: insertMock, findOne: jest.fn() });
 
         const response = await requestSender.createDump(mockedApp, createFakeDumpMetadata());
 

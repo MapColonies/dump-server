@@ -6,10 +6,11 @@ import { logMethod, Metrics } from '@map-colonies/telemetry';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { HealthCheck } from '@godaddy/terminus';
 
+import { dumpMetadataRouterFactory } from '../src/dumpMetadata/routes/dumpMetadataRouter';
 import { tracing } from './common/tracing';
 import { DB_HEALTHCHECK_TIMEOUT_MS, Services } from './common/constants';
 import { promiseTimeout } from './common/utils/promiseTimeout';
-import { DumpMetadata } from './dumpMetadata/models/dumpMetadata';
+import { DumpMetadata } from './dumpMetadata/models/DumpMetadata';
 import { DbConfig, IObjectStorageConfig } from './common/interfaces';
 import { initConnection } from './common/db/connection';
 
@@ -36,6 +37,7 @@ async function registerExternalValues(): Promise<void> {
 
   container.register(Services.CONFIG, { useValue: config });
   container.register(Services.LOGGER, { useValue: logger });
+  container.register('dumpsRouter', { useFactory: dumpMetadataRouterFactory });
 
   const objectStorageConfig = config.get<IObjectStorageConfig>('objectStorage');
   container.register(Services.OBJECT_STORAGE, { useValue: objectStorageConfig });

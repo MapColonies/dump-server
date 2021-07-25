@@ -2,7 +2,7 @@ import { Repository, QueryFailedError } from 'typeorm';
 import faker from 'faker';
 import jsLogger from '@map-colonies/js-logger';
 
-import { DumpMetadata, DumpMetadataResponse, IDumpMetadata } from '../../../../src/dumpMetadata/models/dumpMetadata';
+import { DumpMetadata, DumpMetadataResponse, IDumpMetadata } from '../../../../src/dumpMetadata/models/DumpMetadata';
 import { DumpMetadataManager } from '../../../../src/dumpMetadata/models/dumpMetadataManager';
 import {
   createFakeDumpMetadata,

@@ -16,7 +16,11 @@ import { dumpMetadataRouterFactory } from './dumpMetadata/routes/dumpMetadataRou
 export class ServerBuilder {
   private readonly serverInstance: express.Application;
 
-  public constructor(@inject(Services.CONFIG) private readonly config: IConfig, @inject(Services.LOGGER) private readonly logger: Logger) {
+  public constructor(
+    @inject(Services.CONFIG) private readonly config: IConfig,
+    @inject(Services.LOGGER) private readonly logger: Logger,
+    @inject('dumpsRouter') private readonly dumpsRouter: express.Router
+  ) {
     this.serverInstance = express();
   }
 
@@ -35,7 +39,7 @@ export class ServerBuilder {
   }
 
   private buildRoutes(): void {
-    this.serverInstance.use('/dumps', dumpMetadataRouterFactory(container));
+    this.serverInstance.use('/dumps', this.dumpsRouter);
     this.buildDocsRoutes();
   }
 
@@ -52,6 +56,6 @@ export class ServerBuilder {
   }
 
   private registerPostRoutesMiddleware(): void {
-    this.serverInstance.use(getErrorHandlerMiddleware((message) => this.logger.log('error', message)));
+    this.serverInstance.use(getErrorHandlerMiddleware((message) => this.logger.error(message)));
   }
 }

@@ -6,7 +6,7 @@ import { parseISO } from 'date-fns';
 import { Logger } from '@map-colonies/js-logger';
 
 import { Services } from '../../common/constants';
-import { DumpMetadataCreation, DumpMetadataResponse } from '../models/dumpMetadata';
+import { DumpMetadataCreation, DumpMetadataResponse } from '../models/DumpMetadata';
 import { DumpMetadataFilter, DumpMetadataFilterQueryParams } from '../models/dumpMetadataFilter';
 import { DumpMetadataManager } from '../models/dumpMetadataManager';
 import { DumpNotFoundError } from '../models/errors';
@@ -64,7 +64,7 @@ export class DumpMetadataController {
   public post: PostDumpMetadataHandler = async (req, res, next) => {
     try {
       const createdId = await this.manager.createDumpMetadata(req.body);
-      this.logger.log('info', `dump metadata created successfully with id: ${createdId}`);
+      this.logger.info(`dump metadata created successfully with id: ${createdId}`);
     } catch (error) {
       if (error instanceof DumpNameAlreadyExistsError) {
         (error as HttpError).status = httpStatus.UNPROCESSABLE_ENTITY;
