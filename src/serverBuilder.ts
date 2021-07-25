@@ -6,11 +6,10 @@ import httpLogger from '@map-colonies/express-access-log-middleware';
 import { OpenapiViewerRouter, OpenapiRouterConfig } from '@map-colonies/openapi-express-viewer';
 import { getErrorHandlerMiddleware } from '@map-colonies/error-express-handler';
 import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
-import { container, inject, injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 
 import { Services } from './common/constants';
 import { IConfig } from './common/interfaces';
-import { dumpMetadataRouterFactory } from './dumpMetadata/routes/dumpMetadataRouter';
 
 @injectable()
 export class ServerBuilder {
