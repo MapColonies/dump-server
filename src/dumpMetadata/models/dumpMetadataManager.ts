@@ -47,20 +47,18 @@ export class DumpMetadataManager {
 
   public async createDumpMetadata(newDumpMetadata: DumpMetadataCreation): Promise<string> {
     const { name, bucket } = newDumpMetadata;
-    this.logger.info({ msg: 'creating new dump metadata', name, bucket });
+    this.logger.info({ msg: 'creating new dump metadata', dumpName: name, bucket });
 
     const dumpExists = await this.repository.findOne({ where: [{ bucket, name }] });
     if (dumpExists) {
-      this.logger.error({ msg: 'dump metadata with the same properties already exists', name, bucket });
-      throw new DumpNameAlreadyExistsError(
-        `dump metadata on bucket: ${newDumpMetadata.bucket} with the name: ${newDumpMetadata.name} already exists.`
-      );
+      this.logger.error({ msg: 'dump metadata with the same properties already exists', dumpName: name, bucket });
+      throw new DumpNameAlreadyExistsError(`dump metadata on bucket: ${bucket} with the name: ${name} already exists.`);
     }
 
     const insertionResult = await this.repository.insert(newDumpMetadata);
     const newlyCreatedDumpMetadataId = insertionResult.identifiers[0].id as string;
 
-    this.logger.info({ msg: 'created dump metadata', id: newlyCreatedDumpMetadataId, name, bucket });
+    this.logger.info({ msg: 'created dump metadata', id: newlyCreatedDumpMetadataId, dumpName: name, bucket });
 
     return newlyCreatedDumpMetadataId;
   }

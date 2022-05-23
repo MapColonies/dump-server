@@ -55,6 +55,6 @@ export class ServerBuilder {
   }
 
   private registerPostRoutesMiddleware(): void {
-    this.serverInstance.use(getErrorHandlerMiddleware((message) => this.logger.error(message)));
+    this.serverInstance.use(getErrorHandlerMiddleware());
   }
 }

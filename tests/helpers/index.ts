@@ -1,6 +1,7 @@
 import faker from 'faker';
 import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '../../src/common/constants';
 import { IObjectStorageConfig } from '../../src/common/interfaces';
+import { isStringUndefinedOrEmpty } from '../../src/common/utils';
 
 import { DumpMetadataResponse, DumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
 import { DumpMetadataFilterQueryParams } from '../../src/dumpMetadata/models/dumpMetadataFilter';
@@ -52,9 +53,9 @@ export const convertFakeToResponse = (fakeDumpMetadata: DumpMetadata, includePro
   const { bucket, ...restOfMetadata } = fakeDumpMetadata;
   const { protocol, host, projectId, port } = getMockObjectStorageConfig(includeProjectId);
 
-  const url = projectId
-    ? `${protocol}://${host}:${port}/${projectId}:${bucket}/${restOfMetadata.name}`
-    : `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`;
+  const url = isStringUndefinedOrEmpty(projectId)
+    ? `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`
+    : `${protocol}://${host}:${port}/${projectId}:${bucket}/${restOfMetadata.name}`;
 
   return { ...restOfMetadata, url };
 };
