@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { FactoryFunction } from 'tsyringe';
-
 import { DumpMetadataController } from '../controllers/dumpMetadataController';
 import { RequestBearerAuth } from '../../common/middlewares/bearerAuthentication';
 

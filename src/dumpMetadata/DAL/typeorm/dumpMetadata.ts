@@ -1,13 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
-import { BUCKET_NAME_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT } from '../../common/constants';
-
-export interface IDumpMetadata {
-  id: string;
-  name: string;
-  bucket: string;
-  timestamp: Date;
-  description?: string;
-}
+import { BUCKET_NAME_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT } from '../../../common/constants';
+import { DumpMetadata as IDumpMetadata } from '../../models/dumpMetadata';
 
 @Entity()
 export class DumpMetadata implements IDumpMetadata {
@@ -27,9 +20,3 @@ export class DumpMetadata implements IDumpMetadata {
   @Column({ nullable: true, length: DESCRIPTION_LENGTH_LIMIT })
   public description!: string;
 }
-
-export interface DumpMetadataResponse extends Omit<IDumpMetadata, 'bucket'> {
-  url: string;
-}
-
-export interface DumpMetadataCreation extends Omit<IDumpMetadata, 'id'> {}

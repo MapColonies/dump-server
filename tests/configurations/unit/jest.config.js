@@ -13,10 +13,14 @@ module.exports = {
   testEnvironment: 'node',
   collectCoverage: true,
   collectCoverageFrom: [
-    '<rootDir>/src/dumpMetadata/models/*.ts',
-    '!<rootDir>/src/dumpMetadata/models/dumpMetadata.ts',
-    '!**/node_modules/**',
-    '!**/vendor/**',
+    '<rootDir>/src/**/*.ts',
+    '!*/node_modules/',
+    '!/vendor/**',
+    '!*/common/**',
+    '!**/controllers/**',
+    '!**/routes/**',
+    '!**/DAL/**',
+    '!<rootDir>/src/*',
   ],
   coverageReporters: ['text', 'html', 'json'],
   coverageThreshold: {

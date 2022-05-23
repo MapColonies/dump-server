@@ -1,14 +1,14 @@
 import { Repository, QueryFailedError } from 'typeorm';
 import faker from 'faker';
 import jsLogger from '@map-colonies/js-logger';
-
-import { DumpMetadata, DumpMetadataResponse, IDumpMetadata } from '../../../../src/dumpMetadata/models/DumpMetadata';
+import { DumpMetadata as IDumpMetadata, DumpMetadataResponse } from '../../../../src/dumpMetadata/models/dumpMetadata';
+import { DumpMetadata } from '../../../../src/dumpMetadata/DAL/typeorm/dumpMetadata';
 import { DumpMetadataManager } from '../../../../src/dumpMetadata/models/dumpMetadataManager';
 import {
   createFakeDumpMetadata,
   BOTTOM_FROM,
   TOP_TO,
-  getDefaultFilterQueryParams,
+  getBaseFilterQueryParams,
   getMockObjectStorageConfig,
   convertFakesToResponses,
   convertFakeToResponse,
@@ -32,8 +32,8 @@ describe('dumpMetadataManager', () => {
     findOne = jest.fn();
     insert = jest.fn();
 
-    repository = ({ find, findOne, insert } as unknown) as Repository<DumpMetadata>;
-    dumpMetadataManager = new DumpMetadataManager(repository, jsLogger({ enabled: false }), getMockObjectStorageConfig());
+    repository = { find, findOne, insert } as unknown as Repository<DumpMetadata>;
+    dumpMetadataManager = new DumpMetadataManager(repository, jsLogger({ enabled: false }), getMockObjectStorageConfig(true));
   });
 
   afterEach(() => {
@@ -47,16 +47,16 @@ describe('dumpMetadataManager', () => {
       [BOTTOM_FROM, TOP_TO],
       [undefined, undefined],
     ])(
-      'should return the filtered dumpsMetadatas in any case of filtering by from(0), to(1), both(2) or none(3) (%#)',
+      'should return the filtered dumpsMetadata in any case of filtering by from(0), to(1), both(2) or none(3) (%#)',
       async function (from: Date | undefined, to: Date | undefined) {
         const dumpsMetadata = [createFakeDumpMetadata(), createFakeDumpMetadata(), createFakeDumpMetadata()];
-        const filter: DumpMetadataFilter = { ...getDefaultFilterQueryParams(), from, to };
+        const filter: DumpMetadataFilter = { ...getBaseFilterQueryParams(), from, to };
 
         find.mockReturnValue(sortByOrderFilter(dumpsMetadata, filter.sort));
 
         const getByFilterPromise = dumpMetadataManager.getDumpsMetadataByFilter(filter);
 
-        const dumpsMetadataResponses: DumpMetadataResponse[] = convertFakesToResponses(dumpsMetadata);
+        const dumpsMetadataResponses: DumpMetadataResponse[] = convertFakesToResponses(dumpsMetadata, true);
 
         await expect(getByFilterPromise).resolves.toEqual(sortByOrderFilter(dumpsMetadataResponses, filter.sort));
       }
@@ -66,19 +66,22 @@ describe('dumpMetadataManager', () => {
       [undefined, TOP_TO],
       [BOTTOM_FROM, TOP_TO],
       [undefined, undefined],
-    ])('should return the correct response with no projectId set in url', async function (from: Date | undefined, to: Date | undefined) {
-      const dumpMetadataManagerNoProjectId = new DumpMetadataManager(repository, jsLogger({ enabled: false }), getMockObjectStorageConfig(false));
-      const dumpsMetadata = [createFakeDumpMetadata(), createFakeDumpMetadata(), createFakeDumpMetadata()];
-      const filter: DumpMetadataFilter = { ...getDefaultFilterQueryParams(), from, to };
+    ])(
+      'should return the correct response with no projectId set in url filtering by from(0), to(1), both(2) or none(3) (%#)',
+      async function (from: Date | undefined, to: Date | undefined) {
+        const dumpMetadataManagerNoProjectId = new DumpMetadataManager(repository, jsLogger({ enabled: false }), getMockObjectStorageConfig(false));
+        const dumpsMetadata = [createFakeDumpMetadata(), createFakeDumpMetadata(), createFakeDumpMetadata()];
+        const filter: DumpMetadataFilter = { ...getBaseFilterQueryParams(), from, to };
 
-      find.mockReturnValue(sortByOrderFilter(dumpsMetadata, filter.sort));
+        find.mockReturnValue(sortByOrderFilter(dumpsMetadata, filter.sort));
 
-      const getByFilterPromise = dumpMetadataManagerNoProjectId.getDumpsMetadataByFilter(filter);
+        const getByFilterPromise = dumpMetadataManagerNoProjectId.getDumpsMetadataByFilter(filter);
 
-      const dumpsMetadataResponses: DumpMetadataResponse[] = convertFakesToResponses(dumpsMetadata, false);
+        const dumpsMetadataResponses: DumpMetadataResponse[] = convertFakesToResponses(dumpsMetadata, false);
 
-      await expect(getByFilterPromise).resolves.toEqual(sortByOrderFilter(dumpsMetadataResponses, filter.sort));
-    });
+        await expect(getByFilterPromise).resolves.toEqual(sortByOrderFilter(dumpsMetadataResponses, filter.sort));
+      }
+    );
 
     it('should return the empty array response', async function () {
       const dumpsMetadata: IDumpMetadata[] = [];
@@ -107,7 +110,7 @@ describe('dumpMetadataManager', () => {
 
       const dumpMetadataResponse = convertFakeToResponse(dumpMetadata);
 
-      await expect(getPromise).resolves.toStrictEqual(dumpMetadataResponse);
+      await expect(getPromise).resolves.toEqual(dumpMetadataResponse);
     });
 
     it('should return the dumpMetadata without projectId', async function () {
@@ -123,7 +126,7 @@ describe('dumpMetadataManager', () => {
 
       const dumpMetadataResponse = convertFakeToResponse(dumpMetadata, false);
 
-      await expect(getPromise).resolves.toStrictEqual(dumpMetadataResponse);
+      await expect(getPromise).resolves.toEqual(dumpMetadataResponse);
     });
 
     it('should throw DumpNotFoundError if dumpMetadata with the given id was not found', async () => {
@@ -138,7 +141,7 @@ describe('dumpMetadataManager', () => {
     it('should reject on DB error', async () => {
       findOne.mockRejectedValue(new QueryFailedError('', undefined, new Error()));
 
-      const getPromise = dumpMetadataManager.getDumpMetadataById(faker.random.uuid());
+      const getPromise = dumpMetadataManager.getDumpMetadataById(faker.datatype.uuid());
 
       await expect(getPromise).rejects.toThrow(QueryFailedError);
     });

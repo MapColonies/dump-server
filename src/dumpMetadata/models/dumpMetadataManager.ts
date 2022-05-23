@@ -1,14 +1,14 @@
 import { inject, injectable } from 'tsyringe';
-import { FindManyOptions, Repository, FindOperator, MoreThanOrEqual, LessThanOrEqual, Between } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { Logger } from '@map-colonies/js-logger';
-
 import { Services } from '../../common/constants';
 import { IObjectStorageConfig } from '../../common/interfaces';
 import { isStringUndefinedOrEmpty } from '../../common/utils';
 import { DumpNameAlreadyExistsError } from '../../common/errors';
-import { DumpMetadata, DumpMetadataCreation, DumpMetadataResponse, IDumpMetadata } from './DumpMetadata';
+import { DumpMetadata } from '../DAL/typeorm/dumpMetadata';
+import { DumpMetadataCreation, DumpMetadataResponse } from './dumpMetadata';
 import { DumpNotFoundError } from './errors';
-import { DumpMetadataFilter } from './dumpMetadataFilter';
+import { buildFilterQuery, DumpMetadataFilter } from './dumpMetadataFilter';
 
 @injectable()
 export class DumpMetadataManager {
@@ -23,8 +23,11 @@ export class DumpMetadataManager {
   }
 
   public async getDumpMetadataById(id: string): Promise<DumpMetadataResponse> {
+    this.logger.info({ msg: 'getting dump metadata by id', id });
+
     const dumpMetadata = await this.repository.findOne(id);
     if (!dumpMetadata) {
+      this.logger.error({ msg: 'could not find dump metadata by id', id });
       throw new DumpNotFoundError("Couldn't find dump with the given id.");
     }
     const dumpMetadataResponse = this.convertDumpMetadataToDumpMetadataResponse(dumpMetadata);
@@ -32,20 +35,34 @@ export class DumpMetadataManager {
   }
 
   public async getDumpsMetadataByFilter(filter: DumpMetadataFilter): Promise<DumpMetadataResponse[]> {
-    const query: FindManyOptions<DumpMetadata> = this.buildQuery(filter);
+    this.logger.info({ msg: 'getting dumps metadata by filter', filter });
+
+    const query: FindManyOptions<DumpMetadata> = buildFilterQuery(filter);
     const dumpsMetadata = await this.repository.find(query);
+
+    this.logger.debug({ msg: 'fetched dumps metadata matching filter', filter, count: dumpsMetadata.length });
+
     return dumpsMetadata.map((dumpMetadata) => this.convertDumpMetadataToDumpMetadataResponse(dumpMetadata));
   }
 
   public async createDumpMetadata(newDumpMetadata: DumpMetadataCreation): Promise<string> {
-    const dumpExists = await this.repository.findOne({ where: [{ bucket: newDumpMetadata.bucket, name: newDumpMetadata.name }] });
+    const { name, bucket } = newDumpMetadata;
+    this.logger.info({ msg: 'creating new dump metadata', name, bucket });
+
+    const dumpExists = await this.repository.findOne({ where: [{ bucket, name }] });
     if (dumpExists) {
+      this.logger.error({ msg: 'dump metadata with the same properties already exists', name, bucket });
       throw new DumpNameAlreadyExistsError(
         `dump metadata on bucket: ${newDumpMetadata.bucket} with the name: ${newDumpMetadata.name} already exists.`
       );
     }
+
     const insertionResult = await this.repository.insert(newDumpMetadata);
-    return insertionResult.identifiers[0].id as string;
+    const newlyCreatedDumpMetadataId = insertionResult.identifiers[0].id as string;
+
+    this.logger.info({ msg: 'created dump metadata', id: newlyCreatedDumpMetadataId, name, bucket });
+
+    return newlyCreatedDumpMetadataId;
   }
 
   private getUrlHeader(): string {
@@ -53,7 +70,7 @@ export class DumpMetadataManager {
     return `${protocol}://${host}:${port}`;
   }
 
-  private convertDumpMetadataToDumpMetadataResponse(dumpMetadata: IDumpMetadata): DumpMetadataResponse {
+  private convertDumpMetadataToDumpMetadataResponse(dumpMetadata: DumpMetadata): DumpMetadataResponse {
     const { bucket, ...restOfMetadata } = dumpMetadata;
     const { projectId } = this.objectStorageConfig;
     let bucketCombined: string = bucket;
@@ -62,33 +79,5 @@ export class DumpMetadataManager {
     }
     const url = `${this.urlHeader}/${bucketCombined}/${restOfMetadata.name}`;
     return { ...restOfMetadata, url };
-  }
-
-  private buildQuery(filter: DumpMetadataFilter): FindManyOptions<DumpMetadata> {
-    const findManyOptions: FindManyOptions<DumpMetadata> = {};
-    // limit
-    findManyOptions.take = filter.limit;
-
-    // sort
-    const order = filter.sort === 'asc' ? 'ASC' : 'DESC';
-    findManyOptions.order = { timestamp: order };
-
-    // to & from
-    const timesFilter = this.buildTimestampRangeFilter(filter.from, filter.to);
-    if (timesFilter) {
-      findManyOptions.where = { timestamp: timesFilter };
-    }
-    return findManyOptions;
-  }
-
-  private buildTimestampRangeFilter(from?: Date, to?: Date): FindOperator<Date> | undefined {
-    if (from && to) {
-      return Between(from, to);
-    } else if (from && !to) {
-      return MoreThanOrEqual(from);
-    } else if (!from && to) {
-      return LessThanOrEqual(to);
-    }
-    return undefined;
   }
 }

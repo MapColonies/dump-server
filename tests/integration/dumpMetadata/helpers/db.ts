@@ -1,7 +1,7 @@
 import { DependencyContainer } from 'tsyringe';
 import { Connection, EntityTarget, Repository } from 'typeorm';
 
-import { DumpMetadata } from '../../../../src/dumpMetadata/models/DumpMetadata';
+import { DumpMetadata } from '../../../../src/dumpMetadata/DAL/typeorm/dumpMetadata';
 import { createMultipleFakeDumpsMetadata } from '../../../helpers';
 
 export const getRepositoryFromContainer = <T>(container: DependencyContainer, target: EntityTarget<T>): Repository<T> => {

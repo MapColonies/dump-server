@@ -2,20 +2,19 @@
 import 'reflect-metadata';
 import { createServer } from 'http';
 import { container } from 'tsyringe';
-import { get } from 'config';
+import config from 'config';
 import { Logger } from '@map-colonies/js-logger';
 import { createTerminus } from '@godaddy/terminus';
 import { getApp } from './app';
 import { DEFAULT_SERVER_PORT, Services } from './common/constants';
-import { IServerConfig } from './common/interfaces';
 
-const serverConfig = get<IServerConfig>('server');
-const port: number = parseInt(serverConfig.port) || DEFAULT_SERVER_PORT;
+const port: number = config.get<number>('server.port') || DEFAULT_SERVER_PORT;
 
 void getApp()
   .then((app) => {
     const logger = container.resolve<Logger>(Services.LOGGER);
     const stubHealthcheck = async (): Promise<void> => Promise.resolve();
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     const server = createTerminus(createServer(app), { healthChecks: { '/liveness': stubHealthcheck }, onSignal: container.resolve('onSignal') });
 
     server.listen(port, () => {

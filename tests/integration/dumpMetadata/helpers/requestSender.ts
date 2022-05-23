@@ -1,16 +1,16 @@
 import * as supertest from 'supertest';
 import { Application } from 'express';
 import { DependencyContainer } from 'tsyringe';
-import { get } from 'config';
+import config from 'config';
 
 import { ServerBuilder } from '../../../../src/serverBuilder';
 import { DumpMetadataFilterQueryParams } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
-import { DumpMetadataCreation } from '../../../../src/dumpMetadata/models/DumpMetadata';
+import { DumpMetadataCreation } from '../../../../src/dumpMetadata/models/dumpMetadata';
 import { IApplicationConfig } from '../../../../src/common/interfaces';
 import { Services } from '../../../../src/common/constants';
 import { getMockObjectStorageConfig } from '../../../helpers';
 
-const SECRET_TOKEN = get<IApplicationConfig>('application').authToken;
+const SECRET_TOKEN = config.get<IApplicationConfig>('application').authToken;
 
 const setAuth = async (testRequest: supertest.Test): Promise<supertest.Test> => {
   return testRequest.set('Authorization', `Bearer ${SECRET_TOKEN}`);

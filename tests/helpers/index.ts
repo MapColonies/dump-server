@@ -2,7 +2,7 @@ import faker from 'faker';
 import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '../../src/common/constants';
 import { IObjectStorageConfig } from '../../src/common/interfaces';
 
-import { DumpMetadataResponse, IDumpMetadata } from '../../src/dumpMetadata/models/DumpMetadata';
+import { DumpMetadataResponse, DumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
 import { DumpMetadataFilterQueryParams } from '../../src/dumpMetadata/models/dumpMetadataFilter';
 import { SortFilter } from '../../src/dumpMetadata/models/dumpMetadataFilter';
 
@@ -10,7 +10,7 @@ interface IntegrationDumpMetadataResponse extends Omit<DumpMetadataResponse, 'ti
   timestamp: string;
 }
 
-export const getMockObjectStorageConfig = (includeProjectId = false): IObjectStorageConfig => {
+export const getMockObjectStorageConfig = (includeProjectId: boolean): IObjectStorageConfig => {
   const objectStorageConfig: IObjectStorageConfig = { protocol: 'http', host: 'some_storage_host', port: '9000' };
   if (includeProjectId) {
     objectStorageConfig.projectId = 'some_project_id';
@@ -30,9 +30,9 @@ export const createFakeDate = (): Date => {
   return faker.date.between(BOTTOM_FROM, TOP_TO);
 };
 
-export const createFakeDumpMetadata = (): IDumpMetadata => {
+export const createFakeDumpMetadata = (): DumpMetadata => {
   return {
-    id: faker.random.uuid(),
+    id: faker.datatype.uuid(),
     name: faker.random.word(),
     bucket: faker.random.alpha({ count: BUCKET_NAME_MIN_LENGTH_LIMIT }),
     timestamp: createFakeDate(),
@@ -40,27 +40,26 @@ export const createFakeDumpMetadata = (): IDumpMetadata => {
   };
 };
 
-export const createMultipleFakeDumpsMetadata = (amount: number): IDumpMetadata[] => {
-  const fakeData: IDumpMetadata[] = [];
+export const createMultipleFakeDumpsMetadata = (amount: number): DumpMetadata[] => {
+  const fakeData: DumpMetadata[] = [];
   for (let i = 0; i < amount; i++) {
     fakeData.push(createFakeDumpMetadata());
   }
   return fakeData;
 };
 
-export const convertFakeToResponse = (fakeDumpMetadata: IDumpMetadata, includeProjectId = true): DumpMetadataResponse => {
+export const convertFakeToResponse = (fakeDumpMetadata: DumpMetadata, includeProjectId = true): DumpMetadataResponse => {
   const { bucket, ...restOfMetadata } = fakeDumpMetadata;
-  const { protocol, host, projectId, port } = getMockObjectStorageConfig();
+  const { protocol, host, projectId, port } = getMockObjectStorageConfig(includeProjectId);
 
-  let url = `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`;
-  if (includeProjectId && projectId != undefined) {
-    url = `${protocol}://${host}/${port}/${projectId}:${bucket}/${restOfMetadata.name}`;
-  }
+  const url = projectId
+    ? `${protocol}://${host}:${port}/${projectId}:${bucket}/${restOfMetadata.name}`
+    : `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`;
 
   return { ...restOfMetadata, url };
 };
 
-export const convertFakesToResponses = (fakeDumpsMetadata: IDumpMetadata[], includeProjectId = true): DumpMetadataResponse[] => {
+export const convertFakesToResponses = (fakeDumpsMetadata: DumpMetadata[], includeProjectId = true): DumpMetadataResponse[] => {
   return fakeDumpsMetadata.map((fake) => convertFakeToResponse(fake, includeProjectId));
 };
 
@@ -69,9 +68,9 @@ export const convertToISOTimestamp = (response: DumpMetadataResponse): Integrati
   return { ...rest, timestamp: timestamp.toISOString() };
 };
 
-export const getDefaultFilterQueryParams = (): DumpMetadataFilterQueryParams => {
+export const getBaseFilterQueryParams = (): DumpMetadataFilterQueryParams => {
   return {
-    sort: DEFAULT_SORT,
+    sort: faker.datatype.boolean() ? 'asc' : 'desc',
     limit: DEFAULT_LIMIT,
   };
 };

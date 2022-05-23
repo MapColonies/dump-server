@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { Connection, ConnectionOptions, createConnection } from 'typeorm';
 import { DbConfig } from '../interfaces';
-import { DumpMetadata } from '../../dumpMetadata/models/DumpMetadata';
+import { DumpMetadata } from '../../dumpMetadata/DAL/typeorm/dumpMetadata';
 
 export const ENTITIES_DIRS = [DumpMetadata, 'src/dumpMetadata/models/DumpMetadata.ts'];
 

@@ -6,11 +6,11 @@ import { logMethod, Metrics } from '@map-colonies/telemetry';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { HealthCheck } from '@godaddy/terminus';
 
-import { dumpMetadataRouterFactory } from '../src/dumpMetadata/routes/dumpMetadataRouter';
+import { dumpMetadataRouterFactory } from './dumpMetadata/routes/dumpMetadataRouter';
 import { tracing } from './common/tracing';
 import { DB_HEALTHCHECK_TIMEOUT_MS, Services } from './common/constants';
 import { promiseTimeout } from './common/utils/promiseTimeout';
-import { DumpMetadata } from './dumpMetadata/models/DumpMetadata';
+import { DumpMetadata } from './dumpMetadata/DAL/typeorm/dumpMetadata';
 import { DbConfig, IObjectStorageConfig } from './common/interfaces';
 import { initConnection } from './common/db/connection';
 
@@ -31,9 +31,8 @@ const beforeShutdown = (connection: Connection): (() => Promise<void>) => {
 
 async function registerExternalValues(): Promise<void> {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error the signature is wrong
-  const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, hooks: { logMethod } });
+  const logger = jsLogger({ ...loggerConfig, hooks: { logMethod } });
 
   container.register(Services.CONFIG, { useValue: config });
   container.register(Services.LOGGER, { useValue: logger });
