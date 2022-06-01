@@ -1,7 +1,7 @@
 import { Application } from 'express';
 import { container, DependencyContainer } from 'tsyringe';
 import { QueryFailedError, Repository } from 'typeorm';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import httpStatusCodes from 'http-status-codes';
 import { isWithinInterval, isAfter, isBefore } from 'date-fns';
 

@@ -1,5 +1,5 @@
 import { Repository, QueryFailedError } from 'typeorm';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import jsLogger from '@map-colonies/js-logger';
 import { DumpMetadata as IDumpMetadata, DumpMetadataResponse } from '../../../../src/dumpMetadata/models/dumpMetadata';
 import { DumpMetadata } from '../../../../src/dumpMetadata/DAL/typeorm/dumpMetadata';

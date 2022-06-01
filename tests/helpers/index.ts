@@ -1,4 +1,4 @@
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '../../src/common/constants';
 import { IObjectStorageConfig } from '../../src/common/interfaces';
 import { isStringUndefinedOrEmpty } from '../../src/common/utils';
