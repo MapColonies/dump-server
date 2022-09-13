@@ -3,11 +3,11 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import { Logger } from '@map-colonies/js-logger';
 import httpLogger from '@map-colonies/express-access-log-middleware';
+import { defaultMetricsMiddleware } from '@map-colonies/telemetry';
 import { OpenapiViewerRouter, OpenapiRouterConfig } from '@map-colonies/openapi-express-viewer';
 import { getErrorHandlerMiddleware } from '@map-colonies/error-express-handler';
 import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
 import { inject, injectable } from 'tsyringe';
-
 import { Services } from './common/constants';
 import { IConfig } from './common/interfaces';
 
@@ -43,6 +43,7 @@ export class ServerBuilder {
   }
 
   private registerPreRoutesMiddleware(): void {
+    this.serverInstance.use('/metrics', defaultMetricsMiddleware());
     this.serverInstance.use(httpLogger({ logger: this.logger }));
     if (this.config.get<boolean>('server.response.compression.enabled')) {
       this.serverInstance.use(compression(this.config.get<compression.CompressionFilter>('server.response.compression.options')));

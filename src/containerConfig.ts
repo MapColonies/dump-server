@@ -2,10 +2,10 @@ import { container } from 'tsyringe';
 import { Connection } from 'typeorm';
 import config from 'config';
 import { trace } from '@opentelemetry/api';
-import { logMethod, Metrics } from '@map-colonies/telemetry';
+import { getOtelMixin, Metrics } from '@map-colonies/telemetry';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { HealthCheck } from '@godaddy/terminus';
-
+import { metrics } from '@opentelemetry/api-metrics';
 import { dumpMetadataRouterFactory } from './dumpMetadata/routes/dumpMetadataRouter';
 import { tracing } from './common/tracing';
 import { DB_HEALTHCHECK_TIMEOUT_MS, Services } from './common/constants';
@@ -31,8 +31,7 @@ const beforeShutdown = (connection: Connection): (() => Promise<void>) => {
 
 async function registerExternalValues(): Promise<void> {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
-  // @ts-expect-error the signature is wrong
-  const logger = jsLogger({ ...loggerConfig, hooks: { logMethod } });
+  const logger = jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
 
   container.register(Services.CONFIG, { useValue: config });
   container.register(Services.LOGGER, { useValue: logger });
@@ -52,12 +51,12 @@ async function registerExternalValues(): Promise<void> {
 
   container.register(Services.HEALTHCHECK, { useValue: healthCheck(connection) });
 
-  const metrics = new Metrics('dump-server');
-  const meter = metrics.start();
-  container.register(Services.METER, { useValue: meter });
+  const otelMetrics = new Metrics();
+  otelMetrics.start();
+  container.register(Services.METER, { useValue: metrics.getMeter('app') });
   container.register('onSignal', {
     useValue: async (): Promise<void> => {
-      await Promise.all([tracing.stop(), metrics.stop(), beforeShutdown(connection)]);
+      await Promise.all([tracing.stop(), otelMetrics.stop(), beforeShutdown(connection)]);
     },
   });
 }
