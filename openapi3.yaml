@@ -167,6 +167,9 @@ components:
         description:
           type: string
           maxLength: 256
+        stateNumber:
+          type: integer
+          format: int64
     dumpResponse:
       allOf:
         - $ref: '#/components/schemas/baseDump'

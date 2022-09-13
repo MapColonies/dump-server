@@ -1,6 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Logger } from '@map-colonies/js-logger';
+import { omitBy, isNil } from 'lodash';
 import { Services } from '../../common/constants';
 import { IObjectStorageConfig } from '../../common/interfaces';
 import { isStringUndefinedOrEmpty } from '../../common/utils';
@@ -13,6 +14,7 @@ import { buildFilterQuery, DumpMetadataFilter } from './dumpMetadataFilter';
 @injectable()
 export class DumpMetadataManager {
   private readonly urlHeader: string;
+  private readonly projectId?: string;
 
   public constructor(
     @inject('DumpMetadataRepository') private readonly repository: Repository<DumpMetadata>,
@@ -20,6 +22,9 @@ export class DumpMetadataManager {
     @inject(Services.OBJECT_STORAGE) private readonly objectStorageConfig: IObjectStorageConfig
   ) {
     this.urlHeader = this.getUrlHeader();
+    if (!isStringUndefinedOrEmpty(this.objectStorageConfig.projectId)) {
+      this.projectId = this.objectStorageConfig.projectId;
+    }
   }
 
   public async getDumpMetadataById(id: string): Promise<DumpMetadataResponse> {
@@ -46,8 +51,8 @@ export class DumpMetadataManager {
   }
 
   public async createDumpMetadata(newDumpMetadata: DumpMetadataCreation): Promise<string> {
-    const { name, bucket } = newDumpMetadata;
-    this.logger.info({ msg: 'creating new dump metadata', dumpName: name, bucket });
+    const { name, bucket, stateNumber } = newDumpMetadata;
+    this.logger.info({ msg: 'creating new dump metadata', dumpName: name, bucket, stateNumber });
 
     const dumpExists = await this.repository.findOne({ where: [{ bucket, name }] });
     if (dumpExists) {
@@ -70,12 +75,14 @@ export class DumpMetadataManager {
 
   private convertDumpMetadataToDumpMetadataResponse(dumpMetadata: DumpMetadata): DumpMetadataResponse {
     const { bucket, ...restOfMetadata } = dumpMetadata;
-    const { projectId } = this.objectStorageConfig;
-    let bucketCombined: string = bucket;
-    if (!isStringUndefinedOrEmpty(projectId)) {
-      bucketCombined = `${projectId}:${bucket}`;
+
+    let fullBucketName: string = bucket;
+    if (this.projectId !== undefined) {
+      fullBucketName = `${this.projectId}:${bucket}`;
     }
-    const url = `${this.urlHeader}/${bucketCombined}/${restOfMetadata.name}`;
-    return { ...restOfMetadata, url };
+    const url = `${this.urlHeader}/${fullBucketName}/${restOfMetadata.name}`;
+
+    const nonNilMetadata = omitBy(restOfMetadata, isNil) as DumpMetadataResponse;
+    return { ...nonNilMetadata, url };
   }
 }

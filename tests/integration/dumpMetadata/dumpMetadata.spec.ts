@@ -4,7 +4,7 @@ import { QueryFailedError, Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import httpStatusCodes from 'http-status-codes';
 import { isWithinInterval, isAfter, isBefore } from 'date-fns';
-
+import { omitBy, isNil } from 'lodash';
 import { DumpMetadataCreation } from '../../../src/dumpMetadata/models/dumpMetadata';
 import { DumpMetadata } from '../../../src/dumpMetadata/DAL/typeorm/dumpMetadata';
 import { registerTestValues } from '../testContainerConfig';
@@ -39,7 +39,6 @@ describe('dumps', function () {
     childContainer = await registerTestValues();
     app = requestSender.getApp(childContainer);
     repository = getRepositoryFromContainer(childContainer, DumpMetadata);
-    await repository.clear();
   });
   afterEach(async function () {
     await repository.clear();
@@ -388,9 +387,10 @@ describe('dumps', function () {
       });
 
       it('should return 422 status code if a dump with the same name already exists on the bucket', async function () {
-        const fakeDump = (await generateDumpsMetadataOnDb(childContainer, 1))[0];
-        const response = await requestSender.createDump(app, fakeDump);
+        let fakeDump = (await generateDumpsMetadataOnDb(childContainer, 1))[0];
+        fakeDump = omitBy(fakeDump, isNil) as DumpMetadata;
 
+        const response = await requestSender.createDump(app, fakeDump);
         expect(response.status).toBe(httpStatusCodes.UNPROCESSABLE_ENTITY);
         expect(response.body).toHaveProperty(
           'message',
