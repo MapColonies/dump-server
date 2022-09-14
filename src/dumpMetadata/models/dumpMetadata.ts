@@ -4,7 +4,7 @@ export interface DumpMetadata {
   bucket: string;
   timestamp: Date;
   description?: string;
-  stateNumber?: number;
+  sequenceNumber?: number;
 }
 
 export interface DumpMetadataResponse extends Omit<DumpMetadata, 'bucket'> {

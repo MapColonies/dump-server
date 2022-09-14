@@ -34,7 +34,7 @@ export const createFakeDate = (): Date => {
 
 export const createFakeDumpMetadata = (): DumpMetadata => {
   const shouldContainDescription = faker.datatype.boolean();
-  const shouldContainStateNumber = faker.datatype.boolean();
+  const shouldContainSequenceNumber = faker.datatype.boolean();
 
   const fakeDump: DumpMetadata = {
     id: faker.datatype.uuid(),
@@ -42,7 +42,7 @@ export const createFakeDumpMetadata = (): DumpMetadata => {
     bucket: faker.random.alpha({ count: BUCKET_NAME_MIN_LENGTH_LIMIT }),
     timestamp: createFakeDate(),
     description: shouldContainDescription ? faker.random.word() : undefined,
-    stateNumber: shouldContainStateNumber ? faker.datatype.number({ min: 1 }) : undefined,
+    sequenceNumber: shouldContainSequenceNumber ? faker.datatype.number({ min: 1 }) : undefined,
   };
 
   return fakeDump;

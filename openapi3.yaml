@@ -167,7 +167,7 @@ components:
         description:
           type: string
           maxLength: 256
-        stateNumber:
+        sequenceNumber:
           type: integer
           format: int64
     dumpResponse:

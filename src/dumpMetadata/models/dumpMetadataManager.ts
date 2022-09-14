@@ -51,8 +51,8 @@ export class DumpMetadataManager {
   }
 
   public async createDumpMetadata(newDumpMetadata: DumpMetadataCreation): Promise<string> {
-    const { name, bucket, stateNumber } = newDumpMetadata;
-    this.logger.info({ msg: 'creating new dump metadata', dumpName: name, bucket, stateNumber });
+    const { name, bucket, sequenceNumber } = newDumpMetadata;
+    this.logger.info({ msg: 'creating new dump metadata', dumpName: name, bucket, sequenceNumber });
 
     const dumpExists = await this.repository.findOne({ where: [{ bucket, name }] });
     if (dumpExists) {
