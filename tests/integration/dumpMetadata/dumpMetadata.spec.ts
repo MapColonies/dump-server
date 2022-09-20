@@ -48,6 +48,7 @@ describe('dumps', function () {
   beforeAll(async function () {
     const connectionOptions = config.get<DbConfig>('db');
     connection = await initConnection(connectionOptions);
+    await connection.synchronize();
     repository = connection.getRepository(DumpMetadata);
     await repository.delete({});
 
