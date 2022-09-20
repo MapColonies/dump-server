@@ -1,48 +1,31 @@
 import * as supertest from 'supertest';
-import { Application } from 'express';
-import { DependencyContainer } from 'tsyringe';
-import config from 'config';
-
-import { ServerBuilder } from '../../../../src/serverBuilder';
 import { DumpMetadataFilterQueryParams } from '../../../../src/dumpMetadata/models/dumpMetadataFilter';
 import { DumpMetadataCreation } from '../../../../src/dumpMetadata/models/dumpMetadata';
-import { IApplicationConfig } from '../../../../src/common/interfaces';
-import { Services } from '../../../../src/common/constants';
-import { getMockObjectStorageConfig } from '../../../helpers';
 
-const SECRET_TOKEN = config.get<IApplicationConfig>('application').authToken;
+type AuthParams =
+  | {
+      shouldAuth: true;
+      token: string;
+    }
+  | { shouldAuth: false };
 
-const setAuth = async (testRequest: supertest.Test): Promise<supertest.Test> => {
-  return testRequest.set('Authorization', `Bearer ${SECRET_TOKEN}`);
+const setAuth = async (testRequest: supertest.Test, token: string): Promise<supertest.Test> => {
+  return testRequest.set('Authorization', `Bearer ${token}`);
 };
 
-export function getApp(container: DependencyContainer): Application {
-  const builder = container.resolve<ServerBuilder>(ServerBuilder);
-  return builder.build();
-}
+export class DumpMetadataRequestSender {
+  public constructor(private readonly app: Express.Application) {}
 
-export function getAppWithoutProjectId(container: DependencyContainer): Application {
-  container.register(Services.OBJECT_STORAGE, { useValue: getMockObjectStorageConfig(false) });
-  return getApp(container);
-}
+  public async getDumpsMetadataByFilter(filter: DumpMetadataFilterQueryParams | Record<string, never>): Promise<supertest.Response> {
+    return supertest.agent(this.app).get(`/dumps`).query(filter).set('Content-Type', 'application/json').accept('application/json');
+  }
 
-export function getMockedRepoApp(container: DependencyContainer, repo: unknown): Application {
-  container.register('DumpMetadataRepository', { useValue: repo });
-  return getApp(container);
-}
+  public async createDump(dump: DumpMetadataCreation, auth: AuthParams = { shouldAuth: false }): Promise<supertest.Response> {
+    const testRequest = supertest.agent(this.app).post(`/dumps`).set('Content-Type', 'application/json').send(dump);
+    return auth.shouldAuth ? setAuth(testRequest, auth.token) : testRequest;
+  }
 
-export async function getDumpsMetadataByFilter(
-  app: Application,
-  filter: DumpMetadataFilterQueryParams | Record<string, never>
-): Promise<supertest.Response> {
-  return supertest.agent(app).get(`/dumps`).query(filter).set('Content-Type', 'application/json').accept('application/json');
-}
-
-export async function createDump(app: Application, dump: DumpMetadataCreation, shouldAuth = true): Promise<supertest.Response> {
-  const testRequest = supertest.agent(app).post(`/dumps`).set('Content-Type', 'application/json').send(dump);
-  return shouldAuth ? setAuth(testRequest) : testRequest;
-}
-
-export async function getDumpMetadataById(app: Application, id: string): Promise<supertest.Response> {
-  return supertest.agent(app).get(`/dumps/${id}`).set('Content-Type', 'application/json').accept('application/json');
+  public async getDumpMetadataById(id: string): Promise<supertest.Response> {
+    return supertest.agent(this.app).get(`/dumps/${id}`).set('Content-Type', 'application/json').accept('application/json');
+  }
 }

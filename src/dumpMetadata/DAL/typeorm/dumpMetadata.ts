@@ -23,3 +23,5 @@ export class DumpMetadata implements IDumpMetadata {
   @Column({ name: 'sequence_number', type: 'integer', nullable: true })
   public sequenceNumber!: number;
 }
+
+export const DUMP_METADATA_REPOSITORY_SYMBOL = Symbol('dumpMetadataRepository');

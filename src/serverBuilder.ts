@@ -7,9 +7,9 @@ import { OpenapiViewerRouter, OpenapiRouterConfig } from '@map-colonies/openapi-
 import { getErrorHandlerMiddleware } from '@map-colonies/error-express-handler';
 import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
 import { inject, injectable } from 'tsyringe';
-
 import { Services } from './common/constants';
 import { IConfig } from './common/interfaces';
+import { DUMP_METADATA_ROUTER_SYMBOL } from './dumpMetadata/routes/dumpMetadataRouter';
 
 @injectable()
 export class ServerBuilder {
@@ -18,7 +18,7 @@ export class ServerBuilder {
   public constructor(
     @inject(Services.CONFIG) private readonly config: IConfig,
     @inject(Services.LOGGER) private readonly logger: Logger,
-    @inject('dumpsRouter') private readonly dumpsRouter: express.Router
+    @inject(DUMP_METADATA_ROUTER_SYMBOL) private readonly dumpsRouter: express.Router
   ) {
     this.serverInstance = express();
   }

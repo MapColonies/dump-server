@@ -6,7 +6,7 @@ import { Services } from '../../common/constants';
 import { IObjectStorageConfig } from '../../common/interfaces';
 import { isStringUndefinedOrEmpty } from '../../common/utils';
 import { DumpNameAlreadyExistsError } from '../../common/errors';
-import { DumpMetadata } from '../DAL/typeorm/dumpMetadata';
+import { DumpMetadata, DUMP_METADATA_REPOSITORY_SYMBOL } from '../DAL/typeorm/dumpMetadata';
 import { DumpMetadataCreation, DumpMetadataResponse } from './dumpMetadata';
 import { DumpNotFoundError } from './errors';
 import { buildFilterQuery, DumpMetadataFilter } from './dumpMetadataFilter';
@@ -17,7 +17,7 @@ export class DumpMetadataManager {
   private readonly projectId?: string;
 
   public constructor(
-    @inject('DumpMetadataRepository') private readonly repository: Repository<DumpMetadata>,
+    @inject(DUMP_METADATA_REPOSITORY_SYMBOL) private readonly repository: Repository<DumpMetadata>,
     @inject(Services.LOGGER) private readonly logger: Logger,
     @inject(Services.OBJECT_STORAGE) private readonly objectStorageConfig: IObjectStorageConfig
   ) {

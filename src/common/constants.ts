@@ -11,6 +11,7 @@ export enum Services {
   METER = 'METER',
   HEALTHCHECK = 'HEALTHCHECK',
   OBJECT_STORAGE = 'IObjectStorage',
+  APPLICATION = 'IApplication',
 }
 
 export const DB_TIMEOUT = 5000;

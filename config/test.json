@@ -1,10 +1,10 @@
 {
   "db": {
     "host": "postgres",
-    "schema": "public",
-    "database": "postgres",
+    "schema": "dump_server",
+    "database": "dump-server2",
     "username": "postgres",
-    "password": "1234",
+    "password": "postgres",
     "enableSslAuth": false
   }
 }

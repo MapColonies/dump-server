@@ -1,5 +1,5 @@
 import config from 'config';
-import { createConnectionOptions } from './src/common/db/connection';
+import { createConnectionOptions } from './src/common/db';
 import { DbConfig } from './src/common/interfaces';
 
 const connectionOptions = config.get<DbConfig>('db');

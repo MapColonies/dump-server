@@ -3,8 +3,9 @@ import { FactoryFunction } from 'tsyringe';
 import { DumpMetadataController } from '../controllers/dumpMetadataController';
 import { RequestBearerAuth } from '../../common/middlewares/bearerAuthentication';
 
-const dumpMetadataRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
+export const dumpMetadataRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
   const router = Router();
+
   const controller = dependencyContainer.resolve(DumpMetadataController);
   const requestAuth = dependencyContainer.resolve(RequestBearerAuth);
 
@@ -15,4 +16,4 @@ const dumpMetadataRouterFactory: FactoryFunction<Router> = (dependencyContainer)
   return router;
 };
 
-export { dumpMetadataRouterFactory };
+export const DUMP_METADATA_ROUTER_SYMBOL = Symbol('dumpMetadataRouterFactory');
