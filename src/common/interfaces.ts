@@ -1,7 +1,10 @@
 import { ConnectionOptions } from 'typeorm';
 
 export interface IApplicationConfig {
-  authToken: string;
+  auth: {
+    enabled: boolean;
+    token?: string;
+  };
 }
 
 export type DbConfig = {

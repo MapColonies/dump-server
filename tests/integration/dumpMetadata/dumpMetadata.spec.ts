@@ -55,7 +55,7 @@ describe('dumps', function () {
     const registerOptions = getBaseRegisterOptions();
     registerOptions.override.push({ token: Connection, provider: { useValue: connection } });
     registerOptions.override.push({ token: Services.OBJECT_STORAGE, provider: { useValue: getMockObjectStorageConfig(true) } });
-    registerOptions.override.push({ token: Services.APPLICATION, provider: { useValue: { authToken: 'token' } } });
+    registerOptions.override.push({ token: Services.APPLICATION, provider: { useValue: { auth: { enabled: false } } } });
 
     [container, app] = await getApp(registerOptions);
     requestSender = new DumpMetadataRequestSender(app);
@@ -329,7 +329,23 @@ describe('dumps', function () {
       it('should return 201 status code and create the dump on the db', async function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
-        const response = await requestSender.createDump(dumpCreationBody, { shouldAuth: true, token: 'token' });
+        const response = await requestSender.createDump(dumpCreationBody);
+
+        expect(response.status).toBe(httpStatusCodes.CREATED);
+      });
+
+      it('should return 201 status code if authorization header was set on an app with configured token', async function () {
+        const mockRegisterOptions = getBaseRegisterOptions();
+        mockRegisterOptions.override.push({
+          token: Services.APPLICATION,
+          provider: { useValue: { auth: { enabled: true, token: 'token' } } },
+        });
+        const [, mockApp] = await getApp(mockRegisterOptions);
+        const mockDumpMetadataRequestSender = new DumpMetadataRequestSender(mockApp);
+
+        const fakeDumpMetada = createFakeDumpMetadata();
+        const { id, ...dumpCreationBody } = fakeDumpMetada;
+        const response = await mockDumpMetadataRequestSender.createDump(dumpCreationBody, { shouldAuth: true, token: 'token' });
 
         expect(response.status).toBe(httpStatusCodes.CREATED);
       });
@@ -339,7 +355,7 @@ describe('dumps', function () {
       it('should return 400 status code if the name is missing', async function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, name, ...dumpCreationBody } = fakeDumpMetada;
-        const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation, { shouldAuth: true, token: 'token' });
+        const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', "request.body should have required property 'name'");
@@ -348,7 +364,7 @@ describe('dumps', function () {
       it('should return 400 status code if the bucket is missing', async function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, bucket, ...dumpCreationBody } = fakeDumpMetada;
-        const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation, { shouldAuth: true, token: 'token' });
+        const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', "request.body should have required property 'bucket'");
@@ -357,7 +373,7 @@ describe('dumps', function () {
       it('should return 400 status code if the timestamp is missing', async function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, timestamp, ...dumpCreationBody } = fakeDumpMetada;
-        const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation, { shouldAuth: true, token: 'token' });
+        const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', "request.body should have required property 'timestamp'");
@@ -367,10 +383,7 @@ describe('dumps', function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
 
-        const response = await requestSender.createDump(
-          { ...dumpCreationBody, timestamp: faker.random.word() as unknown as Date },
-          { shouldAuth: true, token: 'token' }
-        );
+        const response = await requestSender.createDump({ ...dumpCreationBody, timestamp: faker.random.word() as unknown as Date });
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', 'request.body.timestamp should match format "date-time"');
@@ -380,10 +393,7 @@ describe('dumps', function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
 
-        const response = await requestSender.createDump(
-          { ...dumpCreationBody, name: faker.random.alpha({ count: NAME_LENGTH_LIMIT + 1 }) },
-          { shouldAuth: true, token: 'token' }
-        );
+        const response = await requestSender.createDump({ ...dumpCreationBody, name: faker.random.alpha({ count: NAME_LENGTH_LIMIT + 1 }) });
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `request.body.name should NOT be longer than ${NAME_LENGTH_LIMIT} characters`);
@@ -393,13 +403,11 @@ describe('dumps', function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
 
-        const response = await requestSender.createDump(
-          {
-            ...dumpCreationBody,
-            bucket: faker.random.alpha({ count: BUCKET_NAME_LENGTH_LIMIT + 1 }),
-          },
-          { shouldAuth: true, token: 'token' }
-        );
+        const response = await requestSender.createDump({
+          ...dumpCreationBody,
+          bucket: faker.random.alpha({ count: BUCKET_NAME_LENGTH_LIMIT + 1 }),
+        });
+
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `request.body.bucket should NOT be longer than ${BUCKET_NAME_LENGTH_LIMIT} characters`);
       });
@@ -408,10 +416,8 @@ describe('dumps', function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
 
-        const response = await requestSender.createDump(
-          { ...dumpCreationBody, bucket: faker.lorem.word(BUCKET_NAME_MIN_LENGTH_LIMIT - 1) },
-          { shouldAuth: true, token: 'token' }
-        );
+        const response = await requestSender.createDump({ ...dumpCreationBody, bucket: faker.lorem.word(BUCKET_NAME_MIN_LENGTH_LIMIT - 1) });
+
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `request.body.bucket should NOT be shorter than ${BUCKET_NAME_MIN_LENGTH_LIMIT} characters`);
       });
@@ -420,13 +426,11 @@ describe('dumps', function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
 
-        const response = await requestSender.createDump(
-          {
-            ...dumpCreationBody,
-            description: faker.random.alpha({ count: DESCRIPTION_LENGTH_LIMIT + 1 }),
-          },
-          { shouldAuth: true, token: 'token' }
-        );
+        const response = await requestSender.createDump({
+          ...dumpCreationBody,
+          description: faker.random.alpha({ count: DESCRIPTION_LENGTH_LIMIT + 1 }),
+        });
+
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `request.body.description should NOT be longer than ${DESCRIPTION_LENGTH_LIMIT} characters`);
       });
@@ -435,7 +439,7 @@ describe('dumps', function () {
         const mockRegisterOptions = getBaseRegisterOptions();
         mockRegisterOptions.override.push({
           token: Services.APPLICATION,
-          provider: { useValue: { authToken: 'token' } },
+          provider: { useValue: { auth: { enabled: true, token: 'token' } } },
         });
         const [, mockApp] = await getApp(mockRegisterOptions);
         const mockDumpMetadataRequestSender = new DumpMetadataRequestSender(mockApp);
@@ -452,7 +456,7 @@ describe('dumps', function () {
         const mockRegisterOptions = getBaseRegisterOptions();
         mockRegisterOptions.override.push({
           token: Services.APPLICATION,
-          provider: { useValue: { authToken: 'token' } },
+          provider: { useValue: { auth: { enabled: true, token: 'token' } } },
         });
         const [, mockApp] = await getApp(mockRegisterOptions);
         const mockDumpMetadataRequestSender = new DumpMetadataRequestSender(mockApp);
@@ -468,7 +472,8 @@ describe('dumps', function () {
         let fakeDump = (await generateDumpsMetadataOnDb(repository, 1))[0];
         fakeDump = omitBy(fakeDump, isNil) as DumpMetadata;
 
-        const response = await requestSender.createDump(fakeDump, { shouldAuth: true, token: 'token' });
+        const response = await requestSender.createDump(fakeDump);
+
         expect(response.status).toBe(httpStatusCodes.UNPROCESSABLE_ENTITY);
         expect(response.body).toHaveProperty(
           'message',
@@ -487,12 +492,12 @@ describe('dumps', function () {
           token: DUMP_METADATA_REPOSITORY_SYMBOL,
           provider: { useValue: { findOne: jest.fn(), insert: insertMock } },
         });
-        mockRegisterOptions.override.push({ token: Services.APPLICATION, provider: { useValue: { authToken: 'token' } } });
+        mockRegisterOptions.override.push({ token: Services.APPLICATION, provider: { useValue: { auth: { enabled: false } } } });
 
         const [, mockApp] = await getApp(mockRegisterOptions);
         mockRequestSender = new DumpMetadataRequestSender(mockApp);
 
-        const response = await mockRequestSender.createDump(createFakeDumpMetadata(), { shouldAuth: true, token: 'token' });
+        const response = await mockRequestSender.createDump(createFakeDumpMetadata());
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.body).toHaveProperty('message', errorMessage);

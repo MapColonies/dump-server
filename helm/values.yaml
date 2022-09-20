@@ -24,6 +24,10 @@ env:
   logLevel: info
   requestPayloadLimit: 1mb
   responseCompressionEnabled: true
+  application:
+    auth:
+      enabled: false
+      # token: 'token'
   tracing:
     enabled: false
     url: 'http://localhost:55681/v1/trace'

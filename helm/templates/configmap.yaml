@@ -26,6 +26,12 @@ data:
   {{- else }}
   DB_ENABLE_SSL_AUTH: "false"
   {{- end }}
+  {{- if .Values.env.application.auth.enabled }}
+  APPLICATION_AUTH_ENABLED: "true"
+  APPLICATION_AUTH_TOKEN: {{ .Values.env.application.auth.token | quote }}
+  {{- else }}
+  APPLICATION_AUTH_ENABLED: "false"
+  {{- end }}
   {{ if .Values.global.tracing.enabled }}
   TELEMETRY_TRACING_ENABLED: 'true'
   TELEMETRY_TRACING_URL: {{ $tracingUrl }}

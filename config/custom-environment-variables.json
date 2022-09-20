@@ -44,7 +44,13 @@
     }
   },
   "application": {
-    "authToken": "APPLICATION_AUTH_TOKEN"
+    "auth": {
+      "enabled": {
+        "__name": "APPLICATION_AUTH_ENABLED",
+        "__format": "boolean"
+      },
+      "token": "APPLICATION_AUTH_TOKEN"
+    }
   },
   "db": {
     "type": "DB_TYPE",

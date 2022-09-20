@@ -9,13 +9,13 @@ export class RequestBearerAuth {
   public constructor(@inject(Services.APPLICATION) private readonly appConfig: IApplicationConfig) {}
 
   public getBearerAuthMiddleware(): Handler {
-    const configuredToken = this.appConfig.authToken;
+    const configuredToken = this.appConfig.auth.token;
 
     return (req: Request, res: Response, next: NextFunction): Response | void => {
       const authHeader = req.headers.authorization;
       if (authHeader !== undefined) {
         const token = authHeader.split(' ')[1];
-        if (token === configuredToken) {
+        if (configuredToken !== undefined && token === configuredToken) {
           return next();
         }
       }
