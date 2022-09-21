@@ -82,7 +82,7 @@ export class DumpMetadataManager {
     }
     const url = `${this.urlHeader}/${fullBucketName}/${restOfMetadata.name}`;
 
-    const nonNilMetadata = omitBy(restOfMetadata, isNil) as DumpMetadataResponse;
+    const nonNilMetadata = omitBy(restOfMetadata, isNil) as unknown as DumpMetadataResponse;
     return { ...nonNilMetadata, url };
   }
 }
