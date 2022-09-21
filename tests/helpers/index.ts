@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { omitBy, isNil } from 'lodash';
 import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '../../src/common/constants';
 import { IObjectStorageConfig } from '../../src/common/interfaces';
 import { isStringUndefinedOrEmpty } from '../../src/common/utils';
@@ -32,13 +33,19 @@ export const createFakeDate = (): Date => {
 };
 
 export const createFakeDumpMetadata = (): DumpMetadata => {
-  return {
+  const shouldContainDescription = faker.datatype.boolean();
+  const shouldContainSequenceNumber = faker.datatype.boolean();
+
+  const fakeDump: DumpMetadata = {
     id: faker.datatype.uuid(),
     name: faker.random.word(),
     bucket: faker.random.alpha({ count: BUCKET_NAME_MIN_LENGTH_LIMIT }),
     timestamp: createFakeDate(),
-    description: faker.random.word(),
+    description: shouldContainDescription ? faker.random.word() : undefined,
+    sequenceNumber: shouldContainSequenceNumber ? faker.datatype.number({ min: 1 }) : undefined,
   };
+
+  return fakeDump;
 };
 
 export const createMultipleFakeDumpsMetadata = (amount: number): DumpMetadata[] => {
@@ -57,7 +64,8 @@ export const convertFakeToResponse = (fakeDumpMetadata: DumpMetadata, includePro
     ? `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`
     : `${protocol}://${host}:${port}/${projectId}:${bucket}/${restOfMetadata.name}`;
 
-  return { ...restOfMetadata, url };
+  const nonNilMetadata = omitBy(restOfMetadata, isNil) as DumpMetadataResponse;
+  return { ...nonNilMetadata, url };
 };
 
 export const convertFakesToResponses = (fakeDumpsMetadata: DumpMetadata[], includeProjectId = true): DumpMetadataResponse[] => {

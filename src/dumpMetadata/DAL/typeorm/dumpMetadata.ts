@@ -19,4 +19,7 @@ export class DumpMetadata implements IDumpMetadata {
 
   @Column({ nullable: true, length: DESCRIPTION_LENGTH_LIMIT })
   public description!: string;
+
+  @Column({ name: 'sequence_number', type: 'integer', nullable: true })
+  public sequenceNumber!: number;
 }
