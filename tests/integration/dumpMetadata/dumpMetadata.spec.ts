@@ -246,7 +246,6 @@ describe('dumps', function () {
 
         const [, mockApp] = await getApp(mockRegisterOptions);
         mockRequestSender = new DumpMetadataRequestSender(mockApp);
-
         const response = await mockRequestSender.getDumpsMetadataByFilter({});
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -329,6 +328,7 @@ describe('dumps', function () {
       it('should return 201 status code and create the dump on the db', async function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, ...dumpCreationBody } = fakeDumpMetada;
+
         const response = await requestSender.createDump(dumpCreationBody);
 
         expect(response.status).toBe(httpStatusCodes.CREATED);
@@ -355,6 +355,7 @@ describe('dumps', function () {
       it('should return 400 status code if the name is missing', async function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, name, ...dumpCreationBody } = fakeDumpMetada;
+
         const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
@@ -364,6 +365,7 @@ describe('dumps', function () {
       it('should return 400 status code if the bucket is missing', async function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, bucket, ...dumpCreationBody } = fakeDumpMetada;
+
         const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
@@ -373,6 +375,7 @@ describe('dumps', function () {
       it('should return 400 status code if the timestamp is missing', async function () {
         const fakeDumpMetada = createFakeDumpMetadata();
         const { id, timestamp, ...dumpCreationBody } = fakeDumpMetada;
+
         const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
@@ -492,6 +495,7 @@ describe('dumps', function () {
           token: DUMP_METADATA_REPOSITORY_SYMBOL,
           provider: { useValue: { findOne: jest.fn(), insert: insertMock } },
         });
+
         mockRegisterOptions.override.push({ token: Services.APPLICATION, provider: { useValue: { auth: { enabled: false } } } });
 
         const [, mockApp] = await getApp(mockRegisterOptions);

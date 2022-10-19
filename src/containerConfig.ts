@@ -2,8 +2,9 @@ import { DependencyContainer, instancePerContainerCachingFactory } from 'tsyring
 import { Connection, Repository } from 'typeorm';
 import config from 'config';
 import { trace } from '@opentelemetry/api';
-import { logMethod, Metrics } from '@map-colonies/telemetry';
+import { getOtelMixin, Metrics } from '@map-colonies/telemetry';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
+import { metrics } from '@opentelemetry/api-metrics';
 import { dumpMetadataRouterFactory, DUMP_METADATA_ROUTER_SYMBOL } from './dumpMetadata/routes/dumpMetadataRouter';
 import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
@@ -23,11 +24,10 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
 
   try {
     const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
-    // @ts-expect-error the signature is wrong
-    const logger = jsLogger({ ...loggerConfig, hooks: { logMethod } });
+    const logger = jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
 
-    const metrics = new Metrics('app');
-    const meter = metrics.start();
+    const otelMetrics = new Metrics();
+    otelMetrics.start();
 
     const tracer = trace.getTracer('app');
 
@@ -39,7 +39,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
       { token: Services.CONFIG, provider: { useValue: config } },
       { token: Services.LOGGER, provider: { useValue: logger } },
       { token: Services.TRACER, provider: { useValue: tracer } },
-      { token: Services.METER, provider: { useValue: meter } },
+      { token: Services.METER, provider: { useValue: metrics.getMeter('app') } },
       { token: Services.OBJECT_STORAGE, provider: { useValue: objectStorageConfig } },
       { token: Services.APPLICATION, provider: { useValue: applicationConfig } },
       {
@@ -71,7 +71,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
         provider: {
           useValue: {
             useValue: async (): Promise<void> => {
-              await Promise.all([tracing.stop(), metrics.stop()]);
+              await Promise.all([tracing.stop(), otelMetrics.stop(), shutdownHandler.onShutdown()]);
             },
           },
         },

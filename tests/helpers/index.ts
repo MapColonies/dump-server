@@ -64,7 +64,7 @@ export const convertFakeToResponse = (fakeDumpMetadata: DumpMetadata, includePro
     ? `${protocol}://${host}:${port}/${bucket}/${restOfMetadata.name}`
     : `${protocol}://${host}:${port}/${projectId}:${bucket}/${restOfMetadata.name}`;
 
-  const nonNilMetadata = omitBy(restOfMetadata, isNil) as DumpMetadataResponse;
+  const nonNilMetadata = omitBy(restOfMetadata, isNil) as unknown as DumpMetadataResponse;
   return { ...nonNilMetadata, url };
 };
 

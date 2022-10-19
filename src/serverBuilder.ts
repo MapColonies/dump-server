@@ -7,9 +7,10 @@ import httpLogger from '@map-colonies/express-access-log-middleware';
 import { OpenapiViewerRouter } from '@map-colonies/openapi-express-viewer';
 import { getErrorHandlerMiddleware } from '@map-colonies/error-express-handler';
 import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
-import { load } from 'js-yaml';
 import { merge } from 'lodash';
 import { inject, injectable } from 'tsyringe';
+import { load } from 'js-yaml';
+import { defaultMetricsMiddleware } from '@map-colonies/telemetry';
 import { Services } from './common/constants';
 import { IApplicationConfig, IConfig, OpenApiConfig } from './common/interfaces';
 import { DUMP_METADATA_ROUTER_SYMBOL } from './dumpMetadata/routes/dumpMetadataRouter';
@@ -97,6 +98,7 @@ export class ServerBuilder {
   }
 
   private registerPreRoutesMiddleware(): void {
+    this.serverInstance.use('/metrics', defaultMetricsMiddleware());
     this.serverInstance.use(httpLogger({ logger: this.logger }));
     if (this.config.get<boolean>('server.response.compression.enabled')) {
       this.serverInstance.use(compression(this.config.get<compression.CompressionFilter>('server.response.compression.options')));

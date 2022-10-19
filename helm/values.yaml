@@ -9,6 +9,9 @@ replicaCount: 1
 enabled: true
 initialDelaySeconds: 600
 
+annotations: {}
+podAnnotations: {}
+
 cloudProvider:
   name: openshift
   dockerRegistryUrl: 'my-registry.io'
@@ -31,6 +34,7 @@ env:
   tracing:
     enabled: false
     url: 'http://localhost:55681/v1/trace'
+    ratio: 1
   metrics:
     enabled: false
     interval: 15000

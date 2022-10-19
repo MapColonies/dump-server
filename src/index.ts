@@ -1,5 +1,6 @@
 // this import must be called before the first import of tsyring
 import 'reflect-metadata';
+import './common/tracing';
 import { createServer } from 'http';
 import { DependencyContainer } from 'tsyringe';
 import config from 'config';
