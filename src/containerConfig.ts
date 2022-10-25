@@ -9,7 +9,7 @@ import { dumpMetadataRouterFactory, DUMP_METADATA_ROUTER_SYMBOL } from './dumpMe
 import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { Services } from './common/constants';
-import { IApplicationConfig, IObjectStorageConfig } from './common/interfaces';
+import { IObjectStorageConfig } from './common/interfaces';
 import { connectionFactory, getDbHealthCheckFunction } from './common/db';
 import { ShutdownHandler } from './common/shutdownHandler';
 import { DumpMetadata, DUMP_METADATA_REPOSITORY_SYMBOL } from './dumpMetadata/DAL/typeorm/dumpMetadata';
@@ -33,15 +33,12 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
 
     const objectStorageConfig = config.get<IObjectStorageConfig>('objectStorage');
 
-    const applicationConfig = config.get<IApplicationConfig>('application');
-
     const dependencies: InjectionObject<unknown>[] = [
       { token: Services.CONFIG, provider: { useValue: config } },
       { token: Services.LOGGER, provider: { useValue: logger } },
       { token: Services.TRACER, provider: { useValue: tracer } },
       { token: Services.METER, provider: { useValue: metrics.getMeter('app') } },
       { token: Services.OBJECT_STORAGE, provider: { useValue: objectStorageConfig } },
-      { token: Services.APPLICATION, provider: { useValue: applicationConfig } },
       {
         token: Connection,
         provider: { useFactory: instancePerContainerCachingFactory(connectionFactory) },

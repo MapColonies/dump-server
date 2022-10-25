@@ -25,9 +25,6 @@
       }
     }
   },
-  "application": {
-    "authToken": "dQw4w9WgXcQ"
-  },
   "db": {
     "type": "postgres",
     "host": "localhost",

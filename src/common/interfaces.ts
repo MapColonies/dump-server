@@ -1,9 +1,5 @@
 import { ConnectionOptions } from 'typeorm';
 
-export interface IApplicationConfig {
-  authToken: string;
-}
-
 export type DbConfig = {
   enableSslAuth: boolean;
   sslPaths: { ca: string; cert: string; key: string };
