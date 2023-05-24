@@ -1,0 +1,220 @@
+# yaml-language-server: $schema=https://json.schemastore.org/catalog-info.json
+
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: dump-server
+  description: A RESTful API for querying and saving planet dumps metadata.
+  tags: 
+    - osm
+    - snapshot
+dependsOn:
+  - resource:default/s3
+spec:
+  type: service
+  lifecycle: production
+  owner: vector-team
+  system: vector-ingestion
+providesApis:
+  - dump-server-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: dump-server-api
+  description: Dump Server API 
+spec:
+  type: openapi
+  lifecycle: production
+  owner: vector-team
+  system: vector-ingestion
+  definition: |
+    openapi: 3.0.1
+    info:
+      title: dump-server
+      description: A RESTful API for querying and saving planet dump's metadata
+      version: 2.0.0
+      license:
+        name: MIT
+        url: https://opensource.org/licenses/MIT
+    paths:
+      /dumps:
+        get:
+          operationId: getDumps
+          tags:
+            - dump
+          summary: Get dumps by optional filters
+          parameters:
+            - in: query
+              name: limit
+              schema:
+                type: integer
+                default: 10
+                minimum: 1
+                maximum: 100
+              description: The number of dumps to be returned in a request
+            - in: query
+              name: from
+              schema:
+                $ref: '#/components/schemas/dumpDate'
+              description: The date to fetch dumps from
+            - in: query
+              name: to
+              schema:
+                $ref: '#/components/schemas/dumpDate'
+              description: The date to fetch dumps until
+            - in: query
+              name: sort
+              description: Date sort order
+              schema:
+                type: string
+                enum:
+                  - asc
+                  - desc
+                default: desc
+          responses:
+            '200':
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/dumpResponse'
+            '400':
+              $ref: '#/components/responses/BadRequest'
+            5XX:
+              $ref: '#/components/responses/UnexpectedError'
+        post:
+          operationId: postDump
+          tags:
+            - dump
+          summary: Create a dump
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/dumpCreation'
+          responses:
+            '201':
+              description: Created
+            '400':
+              $ref: '#/components/responses/BadRequest'
+            '401':
+              $ref: '#/components/responses/Unauthorized'
+            5XX:
+              $ref: '#/components/responses/UnexpectedError'
+      /dumps/{dumpId}:
+        get:
+          operationId: getDumpById
+          tags:
+            - dump
+          summary: Get a dump by id
+          parameters:
+            - in: path
+              name: dumpId
+              schema:
+                $ref: '#/components/schemas/dumpId'
+              required: true
+              description: id of the dump to get
+          responses:
+            '200':
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/dumpResponse'
+            '400':
+              $ref: '#/components/responses/BadRequest'
+            '404':
+              $ref: '#/components/responses/NotFound'
+            '422':
+              $ref: '#/components/responses/UnprocessableEntity'
+            5XX:
+              $ref: '#/components/responses/UnexpectedError'
+    components:
+      responses:
+        BadRequest:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        NotFound:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        Unauthorized:
+          description: Unauthorized Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        UnexpectedError:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        UnprocessableEntity:
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      schemas:
+        dumpDate:
+          type: string
+          format: date-time
+        dumpId:
+          type: string
+          format: uuid
+        error:
+          type: object
+          required:
+            - message
+          properties:
+            message:
+              type: string
+        baseDump:
+          type: object
+          required:
+            - name
+            - timestamp
+          properties:
+            name:
+              type: string
+              maxLength: 100
+            timestamp:
+              $ref: '#/components/schemas/dumpDate'
+            description:
+              type: string
+              maxLength: 256
+            sequenceNumber:
+              type: integer
+              format: int64
+        dumpResponse:
+          allOf:
+            - $ref: '#/components/schemas/baseDump'
+            - type: object
+            - required:
+                - id
+                - url
+            - properties:
+                id:
+                  $ref: '#/components/schemas/dumpId'
+                url:
+                  type: string
+        dumpCreation:
+          allOf:
+            - $ref: '#/components/schemas/baseDump'
+            - type: object
+            - required:
+                - bucket
+            - properties:
+                bucket:
+                  type: string
+                  minLength: 3
+                  maxLength: 63
