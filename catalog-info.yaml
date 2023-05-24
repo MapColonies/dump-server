@@ -5,24 +5,25 @@ kind: Component
 metadata:
   name: dump-server
   description: A RESTful API for querying and saving planet dumps metadata.
-  tags: 
+  tags:
     - osm
     - snapshot
-dependsOn:
-  - resource:default/s3
+
 spec:
   type: service
   lifecycle: production
   owner: vector-team
   system: vector-ingestion
-providesApis:
-  - dump-server-api
+  dependsOn:
+    - resource:default/s3
+  providesApis:
+    - dump-server-api
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
   name: dump-server-api
-  description: Dump Server API 
+  description: Dump Server API
 spec:
   type: openapi
   lifecycle: production
