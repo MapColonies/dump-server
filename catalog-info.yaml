@@ -8,7 +8,7 @@ metadata:
   tags:
     - osm
     - snapshot
-
+    - typescript
 spec:
   type: service
   lifecycle: production
@@ -16,8 +16,21 @@ spec:
   system: vector-ingestion
   dependsOn:
     - resource:default/s3
+    - resource:default/dump-server-db
   providesApis:
     - dump-server-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: dump-server-db
+  description: Stores dump details
+  tags:
+    - postgresql
+spec:
+  type: database
+  owner: vector-team
+  system: vector-ingestion
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
