@@ -48,7 +48,7 @@ export const initConnection = async (dbConfig: DbCommonConfig): Promise<DataSour
       throw error;
     }
   }
-  console.log("BLA: \n", connectionSingleton);
+  console.log("BLA");
   return connectionSingleton;
 };
 
