@@ -72,14 +72,18 @@ describe('dumps', function () {
 
   describe('GET /dumps', function () {
     describe(`${HAPPY_PATH}`, function () {
-      it('should return 200 status code and the dumps queried by the default filter with given empty filter', async function () {
+      it.only('should return 200 status code and the dumps queried by the default filter with given empty filter', async function () {
         const fakeData = await generateDumpsMetadataOnDb(repository, DEFAULT_LIMIT + 1);
+        console.log("A");
 
         const fakeResponses = convertFakesToResponses(fakeData);
+        console.log("B");
 
         const integrationDumpsMetadata = fakeResponses.map((response) => convertToISOTimestamp(response));
+        console.log("C");
 
         const response = await requestSender.getDumpsMetadataByFilter({});
+        console.log("D");
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.body).toHaveLength(DEFAULT_LIMIT);
