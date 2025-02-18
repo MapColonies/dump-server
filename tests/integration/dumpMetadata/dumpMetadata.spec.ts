@@ -38,6 +38,7 @@ import { BAD_PATH, BEFORE_ALL_TIMEOUT, generateDumpsMetadataOnDb, getBaseRegiste
 
 try{
 describe('dumps', function () {
+  console.log("Hi");
   let container: DependencyContainer;
   let app: Application;
   let connection: DataSource;
