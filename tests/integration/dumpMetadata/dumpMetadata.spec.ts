@@ -38,16 +38,19 @@ import { BAD_PATH, BEFORE_ALL_TIMEOUT, generateDumpsMetadataOnDb, getBaseRegiste
 
 try{
 describe('dumps', function () {
-  console.log("Hi");
+  console.log("A");
   let container: DependencyContainer;
   let app: Application;
   let connection: DataSource;
   let repository: Repository<DumpMetadata>;
   let requestSender: DumpMetadataRequestSender;
   let mockRequestSender: DumpMetadataRequestSender;
+  console.log("B");
 
   beforeAll(async function () {
+    console.log("C");
     await initConfig(true);
+    console.log("D");
     const config = getConfig();
     const dataSourceOptions = config.get('db');
     connection = await initConnection(dataSourceOptions);
@@ -75,16 +78,12 @@ describe('dumps', function () {
     describe(`${HAPPY_PATH}`, function () {
       it.only('should return 200 status code and the dumps queried by the default filter with given empty filter', async function () {
         const fakeData = await generateDumpsMetadataOnDb(repository, DEFAULT_LIMIT + 1);
-        console.log("A");
 
         const fakeResponses = convertFakesToResponses(fakeData);
-        console.log("B");
 
         const integrationDumpsMetadata = fakeResponses.map((response) => convertToISOTimestamp(response));
-        console.log("C");
 
         const response = await requestSender.getDumpsMetadataByFilter({});
-        console.log("D");
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.body).toHaveLength(DEFAULT_LIMIT);
