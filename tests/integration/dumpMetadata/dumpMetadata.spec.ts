@@ -38,23 +38,18 @@ import { BAD_PATH, BEFORE_ALL_TIMEOUT, generateDumpsMetadataOnDb, getBaseRegiste
 
 try{
 describe('dumps', function () {
-  console.log("A");
   let container: DependencyContainer;
   let app: Application;
   let connection: DataSource;
   let repository: Repository<DumpMetadata>;
   let requestSender: DumpMetadataRequestSender;
   let mockRequestSender: DumpMetadataRequestSender;
-  console.log("B");
 
   beforeAll(async function () {
-    console.log("C");
     await initConfig(true);
-    console.log("D");
     const config = getConfig();
-    console.log("E");
     const dataSourceOptions = config.get('db');
-    console.log("F");
+    console.log("DATA: \n", dataSourceOptions);
     connection = await initConnection(dataSourceOptions);
     console.log("G");
     await connection.synchronize();
