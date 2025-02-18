@@ -49,7 +49,6 @@ describe('dumps', function () {
     await initConfig(true);
     const config = getConfig();
     const dataSourceOptions = config.get('db');
-    console.log("DATA: \n", dataSourceOptions);
     connection = await initConnection(dataSourceOptions);
     console.log("G");
     await connection.synchronize();
