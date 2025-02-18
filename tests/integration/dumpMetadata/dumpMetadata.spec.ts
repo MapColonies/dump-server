@@ -52,9 +52,13 @@ describe('dumps', function () {
     await initConfig(true);
     console.log("D");
     const config = getConfig();
+    console.log("E");
     const dataSourceOptions = config.get('db');
+    console.log("F");
     connection = await initConnection(dataSourceOptions);
+    console.log("G");
     await connection.synchronize();
+    console.log("H");
     repository = connection.getRepository(DumpMetadata);
     await repository.delete({});
     const registerOptions = getBaseRegisterOptions();
