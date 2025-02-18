@@ -41,9 +41,12 @@ export const createConnectionOptions = (dbConfig: DbCommonConfig): DataSourceOpt
 export const initConnection = async (dbConfig: DbCommonConfig): Promise<DataSource> => {
   if (connectionSingleton === undefined || !connectionSingleton.isInitialized) {
     connectionSingleton = new DataSource(createConnectionOptions(dbConfig));
-    console.log("HERE: \n", connectionSingleton);
-    await connectionSingleton.initialize();
-    console.log("FINISH");
+    try {
+      await connectionSingleton.initialize();
+    } catch (error) {
+      console.log("ERROR: \n", error);
+      throw error;
+    }
   }
   console.log("BLA: \n", connectionSingleton);
   return connectionSingleton;
