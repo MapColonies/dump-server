@@ -3,12 +3,12 @@ import { readFileSync } from 'fs';
 import { TlsOptions } from 'tls';
 import { DataSourceOptions, DataSource } from 'typeorm';
 import { HealthCheck } from '@godaddy/terminus';
-import { FactoryFunction } from 'tsyringe';
+import { DependencyContainer, FactoryFunction } from 'tsyringe';
 import { DbCommonConfig } from '../interfaces';
 import { DumpMetadata } from '../../dumpMetadata/DAL/typeorm/dumpMetadata';
 import { promiseTimeout } from '../utils/promiseTimeout';
-import { DB_HEALTHCHECK_TIMEOUT_MS } from '../constants';
-import { getConfig } from '../config';
+import { DB_HEALTHCHECK_TIMEOUT_MS, SERVICES } from '../constants';
+import { ConfigType } from '../config';
 
 let connectionSingleton: DataSource | undefined;
 
@@ -53,8 +53,8 @@ export const getDbHealthCheckFunction = (connection: DataSource): HealthCheck =>
   };
 };
 
-export const dataSourceFactory: FactoryFunction<DataSource> = (): DataSource => {
-  const config = getConfig();
+export const dataSourceFactory: FactoryFunction<DataSource> = (container: DependencyContainer): DataSource => {
+  const config = container.resolve<ConfigType>(SERVICES.CONFIG);
   const dbConfig = config.get('db');
 
   const dataSourceOptions = createDataSourceOptions(dbConfig);

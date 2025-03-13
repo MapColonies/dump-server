@@ -9,13 +9,13 @@ export const IGNORED_INCOMING_TRACE_ROUTES = [/^.*\/docs.*$/, /^.*\/metrics.*/];
 
 /* eslint-disable @typescript-eslint/naming-convention */
 export const SERVICES = {
-  LOGGER: Symbol('ILogger'),
-  CONFIG: Symbol('IConfig'),
-  TRACER: Symbol('TRACER'),
+  LOGGER: Symbol('Logger'),
+  CONFIG: Symbol('Config'),
+  TRACER: Symbol('Tracer'),
   METRICS: Symbol('Metrics'),
   HEALTHCHECK: Symbol('HealthCheck'),
   OBJECT_STORAGE: Symbol('IObjectStorage'),
-  CLEANUP_REGISTRY: Symbol('CLEANUP_REGISTRY'),
+  CLEANUP_REGISTRY: Symbol('CleanupRegistry'),
 } satisfies Record<string, symbol>;
 /* eslint-enable @typescript-eslint/naming-convention */
 

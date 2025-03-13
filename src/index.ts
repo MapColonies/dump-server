@@ -27,13 +27,15 @@ void getApp()
     });
   })
   .catch(async (error: Error) => {
-    console.error('😢 - failed initializing the server');
-    console.error(error);
+    const errorLogger =
+      depContainer?.isRegistered(SERVICES.LOGGER) == true
+        ? depContainer.resolve<Logger>(SERVICES.LOGGER).error.bind(depContainer.resolve<Logger>(SERVICES.LOGGER))
+        : console.error;
+    errorLogger({ msg: '😢 - failed initializing the server', err: error });
 
     if (depContainer?.isRegistered(ON_SIGNAL) == true) {
       const shutDown: () => Promise<void> = depContainer.resolve(ON_SIGNAL);
       await shutDown();
     }
-
     process.exit(1);
   });
