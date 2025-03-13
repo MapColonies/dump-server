@@ -40,7 +40,7 @@
     "@map-colonies/js-logger": "^1.0.1",
     "@map-colonies/openapi-express-viewer": "^3.0.0",
     "@map-colonies/read-pkg": "0.0.1",
-    "@map-colonies/schemas": "https://ghatmpstorage.blob.core.windows.net/npm-packages/schemas-62f7c6c6915e47be6f3498a2d107961ee29efd2a.tgz",
+    "@map-colonies/schemas": "https://ghatmpstorage.blob.core.windows.net/npm-packages/schemas-98eb2fc3c029dabb9c83deda13d298501869cf91.tgz",
     "@map-colonies/telemetry": "^7.0.1",
     "@opentelemetry/api": "^1.7.0",
     "@opentelemetry/api-metrics": "0.29.0",
