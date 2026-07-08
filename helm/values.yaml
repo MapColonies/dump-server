@@ -4,6 +4,13 @@ global:
   metrics: {}
   tracing: {}
 
+mclabels:
+  component: backend
+  partOf: dump-server
+  owner: vector
+  prometheus:
+    enabled: true
+
 environment: development
 replicaCount: 1
 enabled: true
@@ -46,7 +53,7 @@ dbConfig:
     secretName: secret-name
     certFileName: name.crt
     keyFileName: name.key
-    caFileName: name.crt
+    # caFileName: name.crt
 
 objectStorageConfig:
   host: s3Host

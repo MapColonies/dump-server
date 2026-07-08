@@ -1,5 +1,6 @@
-import { ClassProvider, container as defaultContainer, FactoryProvider, InjectionToken, ValueProvider, RegistrationOptions } from 'tsyringe';
-import { constructor, DependencyContainer } from 'tsyringe/dist/typings/types';
+import type { ClassProvider, FactoryProvider, InjectionToken, ValueProvider, DependencyContainer, RegistrationOptions } from 'tsyringe';
+import { container as defaultContainer } from 'tsyringe';
+import type { constructor } from 'tsyringe/dist/typings/types';
 
 export type Providers<T> = ValueProvider<T> | FactoryProvider<T> | ClassProvider<T> | constructor<T>;
 
@@ -17,8 +18,15 @@ export const registerDependencies = async (
 ): Promise<DependencyContainer> => {
   const container = useChild ? defaultContainer.createChildContainer() : defaultContainer;
 
-  for (const dep of dependencies) {
-    const injectionObj = override?.find((overrideObj) => overrideObj.token === dep.token) ?? dep;
+  for (const injectionObj of dependencies) {
+    const inject = override?.find((overrideObj) => overrideObj.token === injectionObj.token) === undefined;
+    if (inject) {
+      container.register(injectionObj.token, injectionObj.provider as constructor<unknown>, injectionObj.options);
+      await injectionObj.postInjectionHook?.(container);
+    }
+  }
+
+  for (const injectionObj of override ?? []) {
     container.register(injectionObj.token, injectionObj.provider as constructor<unknown>, injectionObj.options);
     await injectionObj.postInjectionHook?.(container);
   }

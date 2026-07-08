@@ -1,4 +1,5 @@
-import { Between, FindOperator, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import type { FindOperator } from 'typeorm';
+import { Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 
 export const buildTimestampRangeFilter = (from?: Date, to?: Date): FindOperator<Date> | undefined => {
   if (from && to) {

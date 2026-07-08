@@ -1,16 +1,17 @@
-import { readFileSync } from 'fs';
-import { Connection, ConnectionOptions, createConnection } from 'typeorm';
-import { HealthCheck } from '@godaddy/terminus';
-import { DependencyContainer, FactoryFunction } from 'tsyringe';
-import { IConfig } from '../../common/interfaces';
-import { DbConfig } from '../interfaces';
+import { readFileSync } from 'node:fs';
+import type { ConnectionOptions } from 'typeorm';
+import { Connection, createConnection } from 'typeorm';
+import type { HealthCheck } from '@godaddy/terminus';
+import type { DependencyContainer, FactoryFunction } from 'tsyringe';
+import type { ConfigType } from '../config';
+import type { DbConfig } from '../interfaces';
 import { DumpMetadata } from '../../dumpMetadata/DAL/typeorm/dumpMetadata';
 import { promiseTimeout } from '../utils/promiseTimeout';
-import { DB_HEALTHCHECK_TIMEOUT_MS, Services } from '../constants';
+import { DB_HEALTHCHECK_TIMEOUT_MS, SERVICES } from '../constants';
 
 let connectionSingleton: Connection | undefined;
 
-export const ENTITIES_DIRS = [DumpMetadata, 'src/dumpMetadata/models/DumpMetadata.ts'];
+export const ENTITIES_DIRS = [DumpMetadata];
 
 export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions => {
   const { enableSslAuth, sslPaths, ...connectionOptions } = dbConfig;
@@ -22,7 +23,7 @@ export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions =
 };
 
 export const initConnection = async (dbConfig: DbConfig): Promise<Connection> => {
-  if (connectionSingleton === undefined || !connectionSingleton.isConnected) {
+  if (connectionSingleton?.isConnected !== true) {
     const connectionOptions = createConnectionOptions({ entities: ENTITIES_DIRS, ...dbConfig });
     connectionSingleton = await createConnection(connectionOptions);
   }
@@ -39,8 +40,8 @@ export const getDbHealthCheckFunction = (connection: Connection): HealthCheck =>
 };
 
 export const connectionFactory: FactoryFunction<Connection> = (container: DependencyContainer): Connection => {
-  const config = container.resolve<IConfig>(Services.CONFIG);
-  const dbConfig = config.get<DbConfig>('db');
+  const config = container.resolve<ConfigType>(SERVICES.CONFIG);
+  const dbConfig: DbConfig = config.get('db');
   const connectionOptions = createConnectionOptions({ entities: ENTITIES_DIRS, ...dbConfig });
   return new Connection(connectionOptions);
 };

@@ -6,13 +6,21 @@
     "uiPath": "/api"
   },
   "telemetry": {
+    "metrics": {},
+    "tracing": {
+      "isEnabled": false
+    },
+    "shared": {},
     "logger": {
       "level": "info",
-      "prettyPrint": false
+      "prettyPrint": false,
+      "opentelemetryOptions": {
+        "enabled": false
+      }
     }
   },
   "server": {
-    "port": "8080",
+    "port": 8080,
     "request": {
       "payload": {
         "limit": "1mb"
@@ -37,8 +45,8 @@
       "key": "",
       "cert": ""
     },
-    "database": "dump-server",
-    "schema": "dump_server"
+    "database": "postgres",
+    "schema": "public"
   },
   "objectStorage": {
     "protocol": "http",
