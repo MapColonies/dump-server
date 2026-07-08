@@ -101,6 +101,8 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         5XX:
           $ref: '#/components/responses/UnexpectedError'
+security:
+  - {}
 components:
   responses:
     BadRequest:
