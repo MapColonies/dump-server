@@ -30,8 +30,19 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     const loggerConfig = configInstance.get('telemetry.logger');
     const logger = await jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
 
-    // the tracer is not lazily resolved by any dependency, so its cleanup is registered directly
-    cleanupRegistry.register({ id: SERVICES.TRACER, func: getTracing().stop.bind(getTracing()) });
+    // the tracer is not lazily resolved by any dependency, so its cleanup is registered directly.
+    // getTracing() is deferred to cleanup time because tracing is only initialized by the instrumentation
+    // file, which is not loaded in tests
+    cleanupRegistry.register({
+      id: SERVICES.TRACER,
+      func: async (): Promise<void> => {
+        try {
+          await getTracing().stop();
+        } catch {
+          // tracing was not initialized
+        }
+      },
+    });
 
     const objectStorageConfig = configInstance.get('objectStorage');
 
