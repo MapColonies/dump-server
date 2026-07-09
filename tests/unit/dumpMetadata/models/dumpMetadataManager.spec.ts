@@ -2,14 +2,14 @@ import type { Repository } from 'typeorm';
 import { QueryFailedError } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import type { Logger } from '@map-colonies/js-logger';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
 import type { DumpMetadata as IDumpMetadata, DumpMetadataResponse } from '@src/dumpMetadata/models/dumpMetadata';
 import type { DumpMetadata } from '@src/dumpMetadata/DAL/typeorm/dumpMetadata';
 import { DumpMetadataManager } from '@src/dumpMetadata/models/dumpMetadataManager';
 import { DumpNotFoundError } from '@src/dumpMetadata/models/errors';
 import type { DumpMetadataFilter } from '@src/dumpMetadata/models/dumpMetadataFilter';
 import { DumpNameAlreadyExistsError } from '@common/errors';
-import { getDefaultFilter } from '../../helpers';
+import { getDefaultFilter } from '@tests/unit/helpers';
 import {
   createFakeDumpMetadata,
   BOTTOM_FROM,
@@ -19,17 +19,7 @@ import {
   convertFakesToResponses,
   convertFakeToResponse,
   sortByOrderFilter,
-} from '../../../helpers';
-
-const noopLogger = {
-  info: (): void => undefined,
-  error: (): void => undefined,
-  debug: (): void => undefined,
-  warn: (): void => undefined,
-  trace: (): void => undefined,
-  fatal: (): void => undefined,
-  child: (): Logger => noopLogger,
-} as unknown as Logger;
+} from '@tests/helpers';
 
 let dumpMetadataManager: DumpMetadataManager;
 
@@ -38,14 +28,16 @@ describe('dumpMetadataManager', () => {
   let findOne: ReturnType<typeof vi.fn>;
   let insert: ReturnType<typeof vi.fn>;
   let repository: Repository<DumpMetadata>;
+  let logger: Logger;
 
-  beforeEach(function () {
+  beforeEach(async function () {
     find = vi.fn();
     findOne = vi.fn();
     insert = vi.fn();
 
     repository = { find, findOne, insert } as unknown as Repository<DumpMetadata>;
-    dumpMetadataManager = new DumpMetadataManager(repository, noopLogger, getMockObjectStorageConfig(true));
+    logger = await jsLogger({ enabled: false });
+    dumpMetadataManager = new DumpMetadataManager(repository, logger, getMockObjectStorageConfig(true));
   });
 
   afterEach(() => {
@@ -82,7 +74,7 @@ describe('dumpMetadataManager', () => {
     ])(
       'should return the correct response with no projectId set in url filtering by from(0), to(1), both(2) or none(3) (%#)',
       async function (from: Date | undefined, to: Date | undefined) {
-        const dumpMetadataManagerNoProjectId = new DumpMetadataManager(repository, noopLogger, getMockObjectStorageConfig(false));
+        const dumpMetadataManagerNoProjectId = new DumpMetadataManager(repository, logger, getMockObjectStorageConfig(false));
         const dumpsMetadata = [createFakeDumpMetadata(), createFakeDumpMetadata(), createFakeDumpMetadata()];
         const filter: DumpMetadataFilter = { ...getBaseFilterQueryParams(), from, to };
 
@@ -130,7 +122,7 @@ describe('dumpMetadataManager', () => {
       const dumpMetadata = createFakeDumpMetadata();
       findOne.mockResolvedValue(dumpMetadata);
 
-      const dumpMetadataManagerWithoutProjectId = new DumpMetadataManager(repository, noopLogger, getMockObjectStorageConfig(false));
+      const dumpMetadataManagerWithoutProjectId = new DumpMetadataManager(repository, logger, getMockObjectStorageConfig(false));
       const getPromise = dumpMetadataManagerWithoutProjectId.getDumpMetadataById(dumpMetadata.id);
 
       const dumpMetadataResponse = convertFakeToResponse(dumpMetadata, false);

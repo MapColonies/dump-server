@@ -14,17 +14,27 @@ let connectionSingleton: Connection | undefined;
 export const ENTITIES_DIRS = [DumpMetadata];
 
 export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions => {
-  const { enableSslAuth, sslPaths, ...connectionOptions } = dbConfig;
-  if (enableSslAuth && connectionOptions.type === 'postgres') {
-    connectionOptions.password = undefined;
-    connectionOptions.ssl = { key: readFileSync(sslPaths.key), cert: readFileSync(sslPaths.cert), ca: readFileSync(sslPaths.ca) };
+  const { ssl, host, port, username, password, database, schema } = dbConfig;
+  const connectionOptions: ConnectionOptions = { type: 'postgres', host, port, username, password, database, schema, entities: ENTITIES_DIRS };
+
+  if (ssl.enabled) {
+    return {
+      ...connectionOptions,
+      password: undefined,
+      ssl: {
+        key: readFileSync(ssl.key),
+        cert: readFileSync(ssl.cert),
+        ...(ssl.ca !== undefined && { ca: readFileSync(ssl.ca) }),
+      },
+    };
   }
+
   return connectionOptions;
 };
 
 export const initConnection = async (dbConfig: DbConfig): Promise<Connection> => {
   if (connectionSingleton?.isConnected !== true) {
-    const connectionOptions = createConnectionOptions({ entities: ENTITIES_DIRS, ...dbConfig });
+    const connectionOptions = createConnectionOptions(dbConfig);
     connectionSingleton = await createConnection(connectionOptions);
   }
   return connectionSingleton;
@@ -42,6 +52,6 @@ export const getDbHealthCheckFunction = (connection: Connection): HealthCheck =>
 export const connectionFactory: FactoryFunction<Connection> = (container: DependencyContainer): Connection => {
   const config = container.resolve<ConfigType>(SERVICES.CONFIG);
   const dbConfig: DbConfig = config.get('db');
-  const connectionOptions = createConnectionOptions({ entities: ENTITIES_DIRS, ...dbConfig });
+  const connectionOptions = createConnectionOptions(dbConfig);
   return new Connection(connectionOptions);
 };

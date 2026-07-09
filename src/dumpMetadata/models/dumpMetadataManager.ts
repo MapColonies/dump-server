@@ -62,7 +62,7 @@ export class DumpMetadataManager {
 
     const insertionResult = await this.repository.insert(newDumpMetadata);
 
-    const newlyCreatedDumpMetadataId = insertionResult.identifiers[0]!.id as string;
+    const newlyCreatedDumpMetadataId = insertionResult.identifiers[0]!.id;
 
     this.logger.info({ msg: 'created dump metadata', id: newlyCreatedDumpMetadataId, dumpName: name, bucket });
 

@@ -1,13 +1,5 @@
-import type { ConnectionOptions } from 'typeorm';
+import type { vectorDumpServerV1Type } from '@map-colonies/schemas';
 
-export type DbConfig = {
-  enableSslAuth: boolean;
-  sslPaths: { ca: string; cert: string; key: string };
-} & ConnectionOptions;
+export type DbConfig = vectorDumpServerV1Type['db'];
 
-export interface IObjectStorageConfig {
-  protocol: string;
-  host: string;
-  port: string;
-  projectId?: string;
-}
+export type IObjectStorageConfig = vectorDumpServerV1Type['objectStorage'];

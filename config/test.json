@@ -5,6 +5,8 @@
     "database": "postgres",
     "username": "postgres",
     "password": "1234",
-    "enableSslAuth": false
+    "ssl": {
+      "enabled": false
+    }
   }
 }

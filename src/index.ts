@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import { createServer } from 'node:http';
 import { createTerminus, type HealthCheck } from '@godaddy/terminus';
 import type { Logger } from '@map-colonies/js-logger';
-import { SERVICES } from '@common/constants';
+import { HEALTHCHECK, ON_SIGNAL, SERVICES } from '@common/constants';
 import type { ConfigType } from '@common/config';
 import { getApp } from './app';
 
@@ -12,8 +12,8 @@ void getApp()
     const logger = container.resolve<Logger>(SERVICES.LOGGER);
     const config = container.resolve<ConfigType>(SERVICES.CONFIG);
     const port = config.get('server.port');
-    const healthCheck = container.resolve<HealthCheck>(SERVICES.HEALTHCHECK);
-    const server = createTerminus(createServer(app), { healthChecks: { '/liveness': healthCheck }, onSignal: container.resolve('onSignal') });
+    const healthCheck = container.resolve<HealthCheck>(HEALTHCHECK);
+    const server = createTerminus(createServer(app), { healthChecks: { '/liveness': healthCheck }, onSignal: container.resolve(ON_SIGNAL) });
 
     server.listen(port, () => {
       logger.info(`app started on port ${port}`);

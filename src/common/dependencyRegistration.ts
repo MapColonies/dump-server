@@ -8,7 +8,7 @@ export interface InjectionObject<T> {
   token: InjectionToken<T>;
   provider: Providers<T>;
   options?: RegistrationOptions;
-  postInjectionHook?: (container: DependencyContainer) => Promise<void>;
+  postInjectionHook?: (container: DependencyContainer) => void | Promise<void>;
 }
 
 export const registerDependencies = async (
@@ -18,17 +18,19 @@ export const registerDependencies = async (
 ): Promise<DependencyContainer> => {
   const container = useChild ? defaultContainer.createChildContainer() : defaultContainer;
 
-  for (const injectionObj of dependencies) {
-    const inject = override?.find((overrideObj) => overrideObj.token === injectionObj.token) === undefined;
-    if (inject) {
-      container.register(injectionObj.token, injectionObj.provider as constructor<unknown>, injectionObj.options);
-      await injectionObj.postInjectionHook?.(container);
-    }
+  // overrides are substituted in place so that later dependencies (and their hooks) can already resolve them
+  for (const dep of dependencies) {
+    const injectionObj = override?.find((overrideObj) => overrideObj.token === dep.token) ?? dep;
+    container.register(injectionObj.token, injectionObj.provider as constructor<unknown>, injectionObj.options);
+    await injectionObj.postInjectionHook?.(container);
   }
 
   for (const injectionObj of override ?? []) {
-    container.register(injectionObj.token, injectionObj.provider as constructor<unknown>, injectionObj.options);
-    await injectionObj.postInjectionHook?.(container);
+    const isSubstituted = dependencies.some((dep) => dep.token === injectionObj.token);
+    if (!isSubstituted) {
+      container.register(injectionObj.token, injectionObj.provider as constructor<unknown>, injectionObj.options);
+      await injectionObj.postInjectionHook?.(container);
+    }
   }
 
   return container;

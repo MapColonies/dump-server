@@ -34,19 +34,15 @@
     }
   },
   "db": {
-    "type": "postgres",
     "host": "localhost",
     "port": 5432,
     "username": "postgres",
     "password": "postgres",
-    "enableSslAuth": false,
-    "sslPaths": {
-      "ca": "",
-      "key": "",
-      "cert": ""
+    "ssl": {
+      "enabled": false
     },
-    "database": "postgres",
-    "schema": "public"
+    "database": "host",
+    "schema": "postgres"
   },
   "objectStorage": {
     "protocol": "http",
