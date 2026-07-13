@@ -9,10 +9,10 @@ permissions:
 env:
   DB_HOST: localhost
   DB_PORT: 5432
-  DB_NAME: osm
+  DB_NAME: postgres
   DB_USERNAME: postgres
   DB_PASSWORD: postgres
-  DB_SCHEMA: osm
+  DB_SCHEMA: postgres
 
 jobs:
   eslint:
