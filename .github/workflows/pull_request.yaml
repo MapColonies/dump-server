@@ -6,6 +6,14 @@ permissions:
   contents: read
   pull-requests: read
 
+env:
+  DB_HOST: localhost
+  DB_PORT: 5432
+  DB_NAME: osm
+  DB_USERNAME: postgres
+  DB_PASSWORD: postgres
+  DB_SCHEMA: osm
+
 jobs:
   eslint:
     name: Run TS Project eslint

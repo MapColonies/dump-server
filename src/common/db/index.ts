@@ -11,7 +11,13 @@ import { DB_HEALTHCHECK_TIMEOUT_MS, SERVICES } from '../constants';
 
 let connectionSingleton: Connection | undefined;
 
-export const ENTITIES_DIRS = [DumpMetadata];
+const readSslFileSync = (kind: 'ca' | 'cert' | 'key', path: string): Buffer => {
+  try {
+    return readFileSync(path);
+  } catch (error) {
+    throw new Error(`failed reading the database ssl ${kind} file at '${path}', check the db.ssl configuration`, { cause: error });
+  }
+};
 
 export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions => {
   const { ssl, host, port, username, password, database, schema } = dbConfig;
@@ -22,9 +28,9 @@ export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions =
       ...connectionOptions,
       password: undefined,
       ssl: {
-        key: readFileSync(ssl.key),
-        cert: readFileSync(ssl.cert),
-        ...(ssl.ca !== undefined && { ca: readFileSync(ssl.ca) }),
+        key: readSslFileSync('key', ssl.key),
+        cert: readSslFileSync('cert', ssl.cert),
+        ...(ssl.ca !== undefined && { ca: readSslFileSync('ca', ssl.ca) }),
       },
     };
   }
@@ -55,3 +61,5 @@ export const connectionFactory: FactoryFunction<Connection> = (container: Depend
   const connectionOptions = createConnectionOptions(dbConfig);
   return new Connection(connectionOptions);
 };
+
+export const ENTITIES_DIRS = [DumpMetadata];
