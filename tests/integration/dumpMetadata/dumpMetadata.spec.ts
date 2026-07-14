@@ -1,6 +1,6 @@
 import assert from 'node:assert';
-import type { Repository } from 'typeorm';
-import { Connection, QueryFailedError } from 'typeorm';
+import type { Connection, Repository } from 'typeorm';
+import { QueryFailedError } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import httpStatusCodes from 'http-status-codes';
 import type { Application } from 'express';
@@ -9,10 +9,11 @@ import { omitBy, isNil } from 'lodash';
 import type { DependencyContainer } from 'tsyringe';
 import { vi, describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import type { DumpMetadataCreation } from '@src/dumpMetadata/models/dumpMetadata';
-import { DumpMetadata, DUMP_METADATA_REPOSITORY_SYMBOL } from '@src/dumpMetadata/DAL/typeorm/dumpMetadata';
+import { DumpMetadata } from '@src/dumpMetadata/DAL/typeorm/dumpMetadata';
+import { DUMP_METADATA_REPOSITORY_SYMBOL } from '@src/dumpMetadata/DAL/typeorm/dumpMetadataRepository';
 import { getApp } from '@src/app';
 import type { DumpMetadataFilterQueryParams, SortFilter } from '@src/dumpMetadata/models/dumpMetadataFilter';
-import { initConnection } from '@common/db';
+import { initConnection, DB_CONNECTION_PROVIDER } from '@common/db';
 import { getConfig, initConfig } from '@src/common/config';
 import { BUCKET_NAME_LENGTH_LIMIT, BUCKET_NAME_MIN_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT, SERVICES } from '@common/constants';
 import {
@@ -27,7 +28,6 @@ import {
   convertFakeToResponse,
   convertToISOTimestamp,
   createFakeDumpMetadata,
-  getMockObjectStorageConfig,
 } from '../../helpers';
 import { DumpMetadataRequestSender } from './helpers/requestSender';
 import { BAD_PATH, BEFORE_ALL_TIMEOUT, generateDumpsMetadataOnDb, getBaseRegisterOptions, HAPPY_PATH, SAD_PATH } from './helpers';
@@ -50,8 +50,7 @@ describe('dumps', function () {
     await repository.delete({});
 
     const registerOptions = await getBaseRegisterOptions();
-    registerOptions.override.push({ token: Connection, provider: { useValue: connection } });
-    registerOptions.override.push({ token: SERVICES.OBJECT_STORAGE, provider: { useValue: getMockObjectStorageConfig(true) } });
+    registerOptions.override.push({ token: DB_CONNECTION_PROVIDER, provider: { useValue: connection } });
 
     [app, container] = await getApp(registerOptions);
     requestSender = new DumpMetadataRequestSender(app);
@@ -269,8 +268,9 @@ describe('dumps', function () {
         const dumpResponse = convertFakeToResponse(fakeDumpMetadata, false);
         const integrationDumpMetadata = convertToISOTimestamp(dumpResponse);
 
+        const { projectId, ...objectStorageConfigWithoutProjectId } = getConfig().get('objectStorage');
         const mockRegisterOptions = await getBaseRegisterOptions();
-        mockRegisterOptions.override.push({ token: SERVICES.OBJECT_STORAGE, provider: { useValue: getMockObjectStorageConfig(false) } });
+        mockRegisterOptions.override.push({ token: SERVICES.OBJECT_STORAGE, provider: { useValue: objectStorageConfigWithoutProjectId } });
         const [mockApp] = await getApp(mockRegisterOptions);
         mockRequestSender = new DumpMetadataRequestSender(mockApp);
         const response = await mockRequestSender.getDumpMetadataById(fakeDumpMetadata.id);

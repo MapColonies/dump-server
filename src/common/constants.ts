@@ -1,7 +1,7 @@
 import { readPackageJsonSync } from '@map-colonies/read-pkg';
 
 export const SERVICE_NAME = readPackageJsonSync().name ?? 'unknown_service';
-export const DEFAULT_SERVER_PORT = 80;
+export const DEFAULT_SERVER_PORT = 8080;
 export const DB_HEALTHCHECK_TIMEOUT_MS = 5000;
 
 export const ON_SIGNAL = Symbol('onSignal');

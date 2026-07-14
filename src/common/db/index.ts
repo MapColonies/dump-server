@@ -19,6 +19,15 @@ const readSslFileSync = (kind: 'ca' | 'cert' | 'key', path: string): Buffer => {
   }
 };
 
+export const ENTITIES_DIRS = [DumpMetadata];
+
+export const DB_CONNECTION_PROVIDER = Symbol('dbConnectionProvider');
+
+export const healthCheckFactory: FactoryFunction<HealthCheck> = (container) => {
+  const connection = container.resolve<Connection>(DB_CONNECTION_PROVIDER);
+  return getDbHealthCheckFunction(connection);
+};
+
 export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions => {
   const { ssl, host, port, username, password, database, schema } = dbConfig;
   const connectionOptions: ConnectionOptions = { type: 'postgres', host, port, username, password, database, schema, entities: ENTITIES_DIRS };
@@ -57,9 +66,7 @@ export const getDbHealthCheckFunction = (connection: Connection): HealthCheck =>
 
 export const connectionFactory: FactoryFunction<Connection> = (container: DependencyContainer): Connection => {
   const config = container.resolve<ConfigType>(SERVICES.CONFIG);
-  const dbConfig: DbConfig = config.get('db');
+  const dbConfig = config.get('db');
   const connectionOptions = createConnectionOptions(dbConfig);
   return new Connection(connectionOptions);
 };
-
-export const ENTITIES_DIRS = [DumpMetadata];

@@ -8,5 +8,11 @@
     "ssl": {
       "enabled": false
     }
+  },
+  "objectStorage": {
+    "protocol": "http",
+    "host": "some_storage_host",
+    "port": 9000,
+    "projectId": "some_project_id"
   }
 }

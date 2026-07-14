@@ -6,7 +6,8 @@ import { SERVICES } from '@common/constants';
 import type { IObjectStorageConfig } from '@common/interfaces';
 import { isStringUndefinedOrEmpty } from '@common/utils';
 import { DumpNameAlreadyExistsError } from '@common/errors';
-import { DumpMetadata, DUMP_METADATA_REPOSITORY_SYMBOL } from '../DAL/typeorm/dumpMetadata';
+import { DumpMetadata } from '../DAL/typeorm/dumpMetadata';
+import { DUMP_METADATA_REPOSITORY_SYMBOL } from '../DAL/typeorm/dumpMetadataRepository';
 import { DumpMetadataCreation, DumpMetadataResponse } from './dumpMetadata';
 import { DumpNotFoundError } from './errors';
 import { buildFilterQuery, DumpMetadataFilter } from './dumpMetadataFilter';
@@ -62,7 +63,7 @@ export class DumpMetadataManager {
 
     const insertionResult = await this.repository.insert(newDumpMetadata);
 
-    const newlyCreatedDumpMetadataId = insertionResult.identifiers[0]!.id;
+    const newlyCreatedDumpMetadataId = (insertionResult.identifiers[0] as { id: string }).id;
 
     this.logger.info({ msg: 'created dump metadata', id: newlyCreatedDumpMetadataId, dumpName: name, bucket });
 

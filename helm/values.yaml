@@ -27,6 +27,12 @@ image:
   repository: 'dump-server'
   tag: 'latest'
 
+configManagement:
+  offlineMode: true
+  # name: 'dump-server'
+  # version: 'latest'
+  # serverUrl: 'http://localhost:8080/api'
+
 env:
   port: 8080
   targetPort: 8080

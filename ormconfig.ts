@@ -2,8 +2,6 @@ import { readFileSync } from 'node:fs';
 import { createConnectionOptions } from './src/common/db';
 import type { DbConfig } from './src/common/interfaces';
 
-// The typeorm CLI cannot await the async application config, so the db section is read directly
-// from the local config file, honoring the same DB_* env overrides the schema defines for the application.
 const { db } = JSON.parse(readFileSync('./config/default.json', 'utf8')) as { db: DbConfig };
 const env = process.env;
 
