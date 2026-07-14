@@ -36,4 +36,16 @@ data:
   TELEMETRY_METRICS_URL: {{ $metricsUrl }}
   TELEMETRY_METRICS_INTERVAL: {{ $metricsInterval }}
   {{ end }}
+  {{- with .Values.configManagement }}
+  CONFIG_OFFLINE_MODE: {{ .offlineMode | quote }}
+  {{- if .name }}
+  CONFIG_NAME: {{ .name | quote }}
+  {{- end }}
+  {{- if .version }}
+  CONFIG_VERSION: {{ .version | quote }}
+  {{- end }}
+  {{- if .serverUrl }}
+  CONFIG_SERVER_URL: {{ .serverUrl | quote }}
+  {{- end }}
+  {{- end }}
 {{- end -}}

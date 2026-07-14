@@ -12,7 +12,7 @@ env:
   DB_NAME: postgres
   DB_USERNAME: postgres
   DB_PASSWORD: postgres
-  DB_SCHEMA: postgres
+  # DB_SCHEMA: public
 
 jobs:
   eslint:
