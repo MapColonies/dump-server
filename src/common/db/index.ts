@@ -7,7 +7,7 @@ import type { ConfigType } from '../config';
 import type { DbConfig } from '../interfaces';
 import { DumpMetadata } from '../../dumpMetadata/DAL/typeorm/dumpMetadata';
 import { promiseTimeout } from '../utils/promiseTimeout';
-import { DB_HEALTHCHECK_TIMEOUT_MS, SERVICES } from '../constants';
+import { SERVICES } from '../constants';
 
 let connectionSingleton: Connection | undefined;
 
@@ -25,7 +25,9 @@ export const DB_CONNECTION_PROVIDER = Symbol('dbConnectionProvider');
 
 export const healthCheckFactory: FactoryFunction<HealthCheck> = (container) => {
   const connection = container.resolve<Connection>(DB_CONNECTION_PROVIDER);
-  return getDbHealthCheckFunction(connection);
+  const config = container.resolve<ConfigType>(SERVICES.CONFIG);
+  const { healthCheckTimeoutMs } = config.get('db');
+  return getDbHealthCheckFunction(connection, healthCheckTimeoutMs);
 };
 
 export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions => {
@@ -55,12 +57,12 @@ export const initConnection = async (dbConfig: DbConfig): Promise<Connection> =>
   return connectionSingleton;
 };
 
-export const getDbHealthCheckFunction = (connection: Connection): HealthCheck => {
+export const getDbHealthCheckFunction = (connection: Connection, timeoutMs: number): HealthCheck => {
   return async (): Promise<void> => {
     const check = connection.query('SELECT 1').then(() => {
       return;
     });
-    return promiseTimeout<void>(DB_HEALTHCHECK_TIMEOUT_MS, check);
+    return promiseTimeout<void>(timeoutMs, check);
   };
 };
 

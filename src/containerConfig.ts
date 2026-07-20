@@ -24,13 +24,22 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   const cleanupRegistry = new CleanupRegistry();
 
   try {
-    const configInstance = getConfig();
-    const loggerConfig = configInstance.get('telemetry.logger');
-    const logger = await jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
-
     const dependencies: InjectionObject<unknown>[] = [
-      { token: SERVICES.CONFIG, provider: { useValue: configInstance } },
-      { token: SERVICES.LOGGER, provider: { useValue: logger } },
+      { token: SERVICES.CONFIG, provider: { useValue: getConfig() } },
+      {
+        token: SERVICES.LOGGER,
+        provider: {
+          useFactory: instancePerContainerCachingFactory(async (container) => {
+            const config = container.resolve<ConfigType>(SERVICES.CONFIG);
+            const loggerConfig = config.get('telemetry.logger');
+            return jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
+          }),
+        },
+        postInjectionHook: async (deps: DependencyContainer): Promise<void> => {
+          const logger = await deps.resolve<Promise<Logger>>(SERVICES.LOGGER);
+          deps.register(SERVICES.LOGGER, { useValue: logger });
+        },
+      },
       {
         token: SERVICES.CLEANUP_REGISTRY,
         provider: { useValue: cleanupRegistry },
@@ -47,18 +56,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
         token: SERVICES.TRACER,
         provider: { useValue: trace.getTracer(SERVICE_NAME) },
         postInjectionHook(): void {
-          // getTracing() is deferred to cleanup time because tracing is only initialized
-          // by the instrumentation file, which is not loaded in tests
-          cleanupRegistry.register({
-            id: SERVICES.TRACER,
-            func: async (): Promise<void> => {
-              try {
-                await getTracing().stop();
-              } catch {
-                // tracing was not initialized
-              }
-            },
-          });
+          cleanupRegistry.register({ id: SERVICES.TRACER, func: getTracing().stop.bind(getTracing()) });
         },
       },
       {
