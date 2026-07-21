@@ -1,18 +1,19 @@
-import { DependencyContainer, instancePerContainerCachingFactory } from 'tsyringe';
-import { Connection, Repository } from 'typeorm';
-import config from 'config';
+import { getOtelMixin } from '@map-colonies/tracing-utils';
 import { trace } from '@opentelemetry/api';
-import { getOtelMixin, Metrics } from '@map-colonies/telemetry';
-import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
-import { metrics } from '@opentelemetry/api-metrics';
+import { Registry } from 'prom-client';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
+import { CleanupRegistry } from '@map-colonies/cleanup-registry';
+import { instancePerContainerCachingFactory } from 'tsyringe';
+import type { DependencyContainer } from 'tsyringe/dist/typings/types';
+import type { Connection } from 'typeorm';
+import { type InjectionObject, registerDependencies } from '@common/dependencyRegistration';
+import { HEALTHCHECK, ON_SIGNAL, SERVICES, SERVICE_NAME } from '@common/constants';
+import type { IObjectStorageConfig } from '@common/interfaces';
+import { getTracing } from '@common/tracing';
+import { connectionFactory, DB_CONNECTION_PROVIDER, healthCheckFactory } from '@common/db';
 import { dumpMetadataRouterFactory, DUMP_METADATA_ROUTER_SYMBOL } from './dumpMetadata/routes/dumpMetadataRouter';
-import { tracing } from './common/tracing';
-import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { Services } from './common/constants';
-import { IObjectStorageConfig } from './common/interfaces';
-import { connectionFactory, getDbHealthCheckFunction } from './common/db';
-import { ShutdownHandler } from './common/shutdownHandler';
-import { DumpMetadata, DUMP_METADATA_REPOSITORY_SYMBOL } from './dumpMetadata/DAL/typeorm/dumpMetadata';
+import { dumpMetadataRepositoryFactory, DUMP_METADATA_REPOSITORY_SYMBOL } from './dumpMetadata/DAL/typeorm/dumpMetadataRepository';
+import { type ConfigType, getConfig } from './common/config';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -20,65 +21,87 @@ export interface RegisterOptions {
 }
 
 export const registerExternalValues = async (options?: RegisterOptions): Promise<DependencyContainer> => {
-  const shutdownHandler = new ShutdownHandler();
+  const cleanupRegistry = new CleanupRegistry();
 
   try {
-    const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
-    const logger = jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
-
-    const otelMetrics = new Metrics();
-    otelMetrics.start();
-
-    const tracer = trace.getTracer('app');
-
-    const objectStorageConfig = config.get<IObjectStorageConfig>('objectStorage');
-
     const dependencies: InjectionObject<unknown>[] = [
-      { token: Services.CONFIG, provider: { useValue: config } },
-      { token: Services.LOGGER, provider: { useValue: logger } },
-      { token: Services.TRACER, provider: { useValue: tracer } },
-      { token: Services.METER, provider: { useValue: metrics.getMeter('app') } },
-      { token: Services.OBJECT_STORAGE, provider: { useValue: objectStorageConfig } },
+      { token: SERVICES.CONFIG, provider: { useValue: getConfig() } },
       {
-        token: Connection,
+        token: SERVICES.LOGGER,
+        provider: {
+          useFactory: instancePerContainerCachingFactory(async (container) => {
+            const config = container.resolve<ConfigType>(SERVICES.CONFIG);
+            const loggerConfig = config.get('telemetry.logger');
+            return jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
+          }),
+        },
+        postInjectionHook: async (deps: DependencyContainer): Promise<void> => {
+          const logger = await deps.resolve<Promise<Logger>>(SERVICES.LOGGER);
+          deps.register(SERVICES.LOGGER, { useValue: logger });
+        },
+      },
+      {
+        token: SERVICES.CLEANUP_REGISTRY,
+        provider: { useValue: cleanupRegistry },
+        postInjectionHook(container): void {
+          const logger = container.resolve<Logger>(SERVICES.LOGGER);
+          const cleanupRegistryLogger = logger.child({ subComponent: 'cleanupRegistry' });
+
+          cleanupRegistry.on('itemFailed', (id, error, msg) => cleanupRegistryLogger.error({ msg, itemId: id, err: error }));
+          cleanupRegistry.on('itemCompleted', (id) => cleanupRegistryLogger.info({ itemId: id, msg: 'cleanup finished for item' }));
+          cleanupRegistry.on('finished', (status) => cleanupRegistryLogger.info({ msg: `cleanup registry finished cleanup`, status }));
+        },
+      },
+      {
+        token: SERVICES.TRACER,
+        provider: { useValue: trace.getTracer(SERVICE_NAME) },
+        postInjectionHook(): void {
+          cleanupRegistry.register({ id: SERVICES.TRACER, func: getTracing().stop.bind(getTracing()) });
+        },
+      },
+      {
+        token: SERVICES.METRICS,
+        provider: {
+          useFactory: instancePerContainerCachingFactory((container) => {
+            const metricsRegistry = new Registry();
+            const config = container.resolve<ConfigType>(SERVICES.CONFIG);
+            config.initializeMetrics(metricsRegistry);
+            return metricsRegistry;
+          }),
+        },
+      },
+      {
+        token: SERVICES.OBJECT_STORAGE,
+        provider: {
+          useFactory: (container): IObjectStorageConfig => container.resolve<ConfigType>(SERVICES.CONFIG).get('objectStorage'),
+        },
+      },
+      {
+        token: ON_SIGNAL,
+        provider: {
+          useValue: cleanupRegistry.trigger.bind(cleanupRegistry),
+        },
+      },
+      {
+        token: DB_CONNECTION_PROVIDER,
         provider: { useFactory: instancePerContainerCachingFactory(connectionFactory) },
         postInjectionHook: async (container: DependencyContainer): Promise<void> => {
-          const connection = container.resolve<Connection>(Connection);
-          shutdownHandler.addFunction(connection.close.bind(connection));
-          await connection.connect();
+          const connection = container.resolve<Connection>(DB_CONNECTION_PROVIDER);
+          if (!connection.isConnected) {
+            await connection.connect();
+            cleanupRegistry.register({ id: DB_CONNECTION_PROVIDER, func: connection.close.bind(connection) });
+          }
         },
       },
-      {
-        token: DUMP_METADATA_REPOSITORY_SYMBOL,
-        provider: {
-          useFactory: (container): Repository<DumpMetadata> => {
-            const connection = container.resolve<Connection>(Connection);
-            const repository = connection.getRepository(DumpMetadata);
-            return repository;
-          },
-        },
-      },
+      { token: DUMP_METADATA_REPOSITORY_SYMBOL, provider: { useFactory: dumpMetadataRepositoryFactory } },
       { token: DUMP_METADATA_ROUTER_SYMBOL, provider: { useFactory: dumpMetadataRouterFactory } },
-      {
-        token: 'healthcheck',
-        provider: { useFactory: (container): unknown => getDbHealthCheckFunction(container.resolve<Connection>(Connection)) },
-      },
-      {
-        token: 'onSignal',
-        provider: {
-          useValue: {
-            useValue: async (): Promise<void> => {
-              await Promise.all([tracing.stop(), otelMetrics.stop(), shutdownHandler.onShutdown()]);
-            },
-          },
-        },
-      },
+      { token: HEALTHCHECK, provider: { useFactory: healthCheckFactory } },
     ];
 
     const container = await registerDependencies(dependencies, options?.override, options?.useChild);
     return container;
   } catch (error) {
-    await shutdownHandler.onShutdown();
+    await cleanupRegistry.trigger();
     throw error;
   }
 };

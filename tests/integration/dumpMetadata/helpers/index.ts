@@ -1,10 +1,10 @@
-import { Repository } from 'typeorm';
-import jsLogger from '@map-colonies/js-logger';
+import type { Repository } from 'typeorm';
+import { jsLogger } from '@map-colonies/js-logger';
 import { trace } from '@opentelemetry/api';
-import { DumpMetadata } from '../../../../src/dumpMetadata/DAL/typeorm/dumpMetadata';
-import { createMultipleFakeDumpsMetadata } from '../../../helpers';
-import { RegisterOptions } from '../../../../src/containerConfig';
-import { Services } from '../../../../src/common/constants';
+import type { DumpMetadata } from '@src/dumpMetadata/DAL/typeorm/dumpMetadata';
+import type { RegisterOptions } from '@src/containerConfig';
+import { SERVICES } from '@common/constants';
+import { createMultipleFakeDumpsMetadata } from '@tests/helpers';
 
 export const HAPPY_PATH = 'Happy Path 🙂';
 export const SAD_PATH = 'Sad Path 😥';
@@ -17,11 +17,11 @@ export const generateDumpsMetadataOnDb = async (repository: Repository<DumpMetad
   return repository.save(createdDumpsMetadata);
 };
 
-export const getBaseRegisterOptions = (): Required<RegisterOptions> => {
+export const getBaseRegisterOptions = async (): Promise<Required<RegisterOptions>> => {
   return {
     override: [
-      { token: Services.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
-      { token: Services.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
+      { token: SERVICES.LOGGER, provider: { useValue: await jsLogger({ enabled: false }) } },
+      { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
     ],
     useChild: true,
   };

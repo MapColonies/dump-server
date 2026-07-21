@@ -1,14 +1,21 @@
-import config from 'config';
-import { Connection, QueryFailedError, Repository } from 'typeorm';
+import assert from 'node:assert';
+import type { Connection, Repository } from 'typeorm';
+import { QueryFailedError } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import httpStatusCodes from 'http-status-codes';
-import { Application } from 'express';
+import type { Application } from 'express';
 import { isWithinInterval, isAfter, isBefore } from 'date-fns';
 import { omitBy, isNil } from 'lodash';
-import { DependencyContainer } from 'tsyringe';
-import { DumpMetadataCreation } from '../../../src/dumpMetadata/models/dumpMetadata';
-import { DumpMetadata, DUMP_METADATA_REPOSITORY_SYMBOL } from '../../../src/dumpMetadata/DAL/typeorm/dumpMetadata';
-import { getApp } from '../../../src/app';
+import type { DependencyContainer } from 'tsyringe';
+import { vi, describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import type { DumpMetadataCreation } from '@src/dumpMetadata/models/dumpMetadata';
+import { DumpMetadata } from '@src/dumpMetadata/DAL/typeorm/dumpMetadata';
+import { DUMP_METADATA_REPOSITORY_SYMBOL } from '@src/dumpMetadata/DAL/typeorm/dumpMetadataRepository';
+import { getApp } from '@src/app';
+import type { DumpMetadataFilterQueryParams, SortFilter } from '@src/dumpMetadata/models/dumpMetadataFilter';
+import { initConnection, DB_CONNECTION_PROVIDER } from '@common/db';
+import { getConfig, initConfig } from '@src/common/config';
+import { BUCKET_NAME_LENGTH_LIMIT, BUCKET_NAME_MIN_LENGTH_LIMIT, DESCRIPTION_LENGTH_LIMIT, NAME_LENGTH_LIMIT, SERVICES } from '@common/constants';
 import {
   getBaseFilterQueryParams,
   sortByOrderFilter,
@@ -21,19 +28,7 @@ import {
   convertFakeToResponse,
   convertToISOTimestamp,
   createFakeDumpMetadata,
-  getMockObjectStorageConfig,
 } from '../../helpers';
-import { DbConfig } from '../../../src/common/interfaces';
-import { DumpMetadataFilterQueryParams } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
-import { SortFilter } from '../../../src/dumpMetadata/models/dumpMetadataFilter';
-import { initConnection } from '../../../src/common/db';
-import {
-  BUCKET_NAME_LENGTH_LIMIT,
-  BUCKET_NAME_MIN_LENGTH_LIMIT,
-  DESCRIPTION_LENGTH_LIMIT,
-  NAME_LENGTH_LIMIT,
-  Services,
-} from '../../../src/common/constants';
 import { DumpMetadataRequestSender } from './helpers/requestSender';
 import { BAD_PATH, BEFORE_ALL_TIMEOUT, generateDumpsMetadataOnDb, getBaseRegisterOptions, HAPPY_PATH, SAD_PATH } from './helpers';
 
@@ -46,17 +41,18 @@ describe('dumps', function () {
   let mockRequestSender: DumpMetadataRequestSender;
 
   beforeAll(async function () {
-    const connectionOptions = config.get<DbConfig>('db');
+    await initConfig(true);
+
+    const connectionOptions = getConfig().get('db');
     connection = await initConnection(connectionOptions);
     await connection.synchronize();
     repository = connection.getRepository(DumpMetadata);
     await repository.delete({});
 
-    const registerOptions = getBaseRegisterOptions();
-    registerOptions.override.push({ token: Connection, provider: { useValue: connection } });
-    registerOptions.override.push({ token: Services.OBJECT_STORAGE, provider: { useValue: getMockObjectStorageConfig(true) } });
+    const registerOptions = await getBaseRegisterOptions();
+    registerOptions.override.push({ token: DB_CONNECTION_PROVIDER, provider: { useValue: connection } });
 
-    [container, app] = await getApp(registerOptions);
+    [app, container] = await getApp(registerOptions);
     requestSender = new DumpMetadataRequestSender(app);
   }, BEFORE_ALL_TIMEOUT);
 
@@ -68,6 +64,7 @@ describe('dumps', function () {
     await connection.close();
     container.reset();
   });
+
   describe('GET /dumps', function () {
     describe(`${HAPPY_PATH}`, function () {
       it('should return 200 status code and the dumps queried by the default filter with given empty filter', async function () {
@@ -91,19 +88,14 @@ describe('dumps', function () {
 
         const fakeData = await generateDumpsMetadataOnDb(repository, DEFAULT_LIMIT + 1);
 
-        // filter by times
         const fakeDataFiltered = fakeData.filter((fakeDump) => isWithinInterval(fakeDump.timestamp, { start: from, end: to }));
 
-        // convert to responses
         const fakeResponses = convertFakesToResponses(fakeDataFiltered);
 
-        // convert timestamp from date to string
         const integrationDumpsMetadata = fakeResponses.map((response) => convertToISOTimestamp(response));
 
-        // sort
         const sortedResponses = sortByOrderFilter(integrationDumpsMetadata, filter.sort);
 
-        // limit
         const limitedResponses = sortedResponses.slice(0, filter.limit);
 
         const response = await requestSender.getDumpsMetadataByFilter(filter);
@@ -211,7 +203,7 @@ describe('dumps', function () {
         const response = await requestSender.getDumpsMetadataByFilter(filter);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', 'request.query.sort should be equal to one of the allowed values: asc, desc');
+        expect(response.body).toHaveProperty('message', 'request/query/sort must be equal to one of the allowed values: asc, desc');
       });
 
       it('should return 400 status code for an invalid limit lower than 1', async function () {
@@ -220,7 +212,7 @@ describe('dumps', function () {
         const response = await requestSender.getDumpsMetadataByFilter(filter);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', 'request.query.limit should be >= 1');
+        expect(response.body).toHaveProperty('message', 'request/query/limit must be >= 1');
       });
 
       it('should return 400 status code for an invalid limit greater than 100', async function () {
@@ -229,21 +221,21 @@ describe('dumps', function () {
         const response = await requestSender.getDumpsMetadataByFilter(filter);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', 'request.query.limit should be <= 100');
+        expect(response.body).toHaveProperty('message', 'request/query/limit must be <= 100');
       });
     });
 
     describe(`${SAD_PATH}`, function () {
       it('should return 500 status code if a database exception occurs', async function () {
         const errorMessage = 'An error occurred';
-        const findMock = jest.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
-        const mockRegisterOptions = getBaseRegisterOptions();
+        const findMock = vi.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
+        const mockRegisterOptions = await getBaseRegisterOptions();
         mockRegisterOptions.override.push({
           token: DUMP_METADATA_REPOSITORY_SYMBOL,
           provider: { useValue: { find: findMock } },
         });
 
-        const [, mockApp] = await getApp(mockRegisterOptions);
+        const [mockApp] = await getApp(mockRegisterOptions);
         mockRequestSender = new DumpMetadataRequestSender(mockApp);
 
         const response = await mockRequestSender.getDumpsMetadataByFilter({});
@@ -257,7 +249,8 @@ describe('dumps', function () {
   describe('GET /dumps/:dumpId', function () {
     describe(`${HAPPY_PATH}`, function () {
       it('should return 200 status code and the dump metadata', async function () {
-        const fakeDumpMetadata = (await generateDumpsMetadataOnDb(repository, 1))[0];
+        const [fakeDumpMetadata] = await generateDumpsMetadataOnDb(repository, 1);
+        assert(fakeDumpMetadata);
 
         const dumpResponse = convertFakeToResponse(fakeDumpMetadata);
         const integrationDumpMetadata = convertToISOTimestamp(dumpResponse);
@@ -269,14 +262,16 @@ describe('dumps', function () {
       });
 
       it('should return 200 status code and the dump metadata without projectId', async function () {
-        const fakeDumpMetadata = (await generateDumpsMetadataOnDb(repository, 1))[0];
+        const [fakeDumpMetadata] = await generateDumpsMetadataOnDb(repository, 1);
+        assert(fakeDumpMetadata);
 
         const dumpResponse = convertFakeToResponse(fakeDumpMetadata, false);
         const integrationDumpMetadata = convertToISOTimestamp(dumpResponse);
 
-        const mockRegisterOptions = getBaseRegisterOptions();
-        mockRegisterOptions.override.push({ token: Services.OBJECT_STORAGE, provider: { useValue: getMockObjectStorageConfig(false) } });
-        const [, mockApp] = await getApp(mockRegisterOptions);
+        const { projectId, ...objectStorageConfigWithoutProjectId } = getConfig().get('objectStorage');
+        const mockRegisterOptions = await getBaseRegisterOptions();
+        mockRegisterOptions.override.push({ token: SERVICES.OBJECT_STORAGE, provider: { useValue: objectStorageConfigWithoutProjectId } });
+        const [mockApp] = await getApp(mockRegisterOptions);
         mockRequestSender = new DumpMetadataRequestSender(mockApp);
         const response = await mockRequestSender.getDumpMetadataById(fakeDumpMetadata.id);
 
@@ -290,7 +285,7 @@ describe('dumps', function () {
         const response = await requestSender.getDumpMetadataById(faker.random.word());
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', 'request.params.dumpId should match format "uuid"');
+        expect(response.body).toHaveProperty('message', 'request/params/dumpId must match format "uuid"');
       });
     });
 
@@ -304,15 +299,15 @@ describe('dumps', function () {
 
       it('should return 500 status code if a database exception occurs', async function () {
         const errorMessage = 'An error occurred';
-        const findOneMock = jest.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
+        const findOneMock = vi.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
 
-        const mockRegisterOptions = getBaseRegisterOptions();
+        const mockRegisterOptions = await getBaseRegisterOptions();
         mockRegisterOptions.override.push({
           token: DUMP_METADATA_REPOSITORY_SYMBOL,
           provider: { useValue: { findOne: findOneMock } },
         });
 
-        const [, mockApp] = await getApp(mockRegisterOptions);
+        const [mockApp] = await getApp(mockRegisterOptions);
         mockRequestSender = new DumpMetadataRequestSender(mockApp);
 
         const response = await mockRequestSender.getDumpMetadataById(faker.datatype.uuid());
@@ -341,7 +336,7 @@ describe('dumps', function () {
         const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', "request.body should have required property 'name'");
+        expect(response.body).toHaveProperty('message', "request/body must have required property 'name'");
       });
 
       it('should return 400 status code if the bucket is missing', async function () {
@@ -350,7 +345,7 @@ describe('dumps', function () {
         const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', "request.body should have required property 'bucket'");
+        expect(response.body).toHaveProperty('message', "request/body must have required property 'bucket'");
       });
 
       it('should return 400 status code if the timestamp is missing', async function () {
@@ -359,7 +354,7 @@ describe('dumps', function () {
         const response = await requestSender.createDump({ ...dumpCreationBody } as DumpMetadataCreation);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', "request.body should have required property 'timestamp'");
+        expect(response.body).toHaveProperty('message', "request/body must have required property 'timestamp'");
       });
 
       it('should return 400 status code if the timestamp is not in a utc format', async function () {
@@ -369,7 +364,7 @@ describe('dumps', function () {
         const response = await requestSender.createDump({ ...dumpCreationBody, timestamp: faker.random.word() as unknown as Date });
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', 'request.body.timestamp should match format "date-time"');
+        expect(response.body).toHaveProperty('message', 'request/body/timestamp must match format "date-time"');
       });
 
       it(`should return 400 status code if the name is longer than ${NAME_LENGTH_LIMIT} characters`, async function () {
@@ -379,7 +374,7 @@ describe('dumps', function () {
         const response = await requestSender.createDump({ ...dumpCreationBody, name: faker.random.alpha({ count: NAME_LENGTH_LIMIT + 1 }) });
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', `request.body.name should NOT be longer than ${NAME_LENGTH_LIMIT} characters`);
+        expect(response.body).toHaveProperty('message', `request/body/name must NOT have more than ${NAME_LENGTH_LIMIT} characters`);
       });
 
       it(`should return 400 status code if the bucket is longer than ${BUCKET_NAME_LENGTH_LIMIT} characters`, async function () {
@@ -390,8 +385,9 @@ describe('dumps', function () {
           ...dumpCreationBody,
           bucket: faker.random.alpha({ count: BUCKET_NAME_LENGTH_LIMIT + 1 }),
         });
+
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', `request.body.bucket should NOT be longer than ${BUCKET_NAME_LENGTH_LIMIT} characters`);
+        expect(response.body).toHaveProperty('message', `request/body/bucket must NOT have more than ${BUCKET_NAME_LENGTH_LIMIT} characters`);
       });
 
       it(`should return 400 status code if the bucket is shorter than ${BUCKET_NAME_MIN_LENGTH_LIMIT} characters`, async function () {
@@ -399,8 +395,9 @@ describe('dumps', function () {
         const { id, ...dumpCreationBody } = fakeDumpMetada;
 
         const response = await requestSender.createDump({ ...dumpCreationBody, bucket: faker.lorem.word(BUCKET_NAME_MIN_LENGTH_LIMIT - 1) });
+
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', `request.body.bucket should NOT be shorter than ${BUCKET_NAME_MIN_LENGTH_LIMIT} characters`);
+        expect(response.body).toHaveProperty('message', `request/body/bucket must NOT have fewer than ${BUCKET_NAME_MIN_LENGTH_LIMIT} characters`);
       });
 
       it(`should return 400 status code if the description is longer than ${DESCRIPTION_LENGTH_LIMIT} characters`, async function () {
@@ -411,8 +408,9 @@ describe('dumps', function () {
           ...dumpCreationBody,
           description: faker.random.alpha({ count: DESCRIPTION_LENGTH_LIMIT + 1 }),
         });
+
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', `request.body.description should NOT be longer than ${DESCRIPTION_LENGTH_LIMIT} characters`);
+        expect(response.body).toHaveProperty('message', `request/body/description must NOT have more than ${DESCRIPTION_LENGTH_LIMIT} characters`);
       });
 
       it('should return 422 status code if a dump with the same name already exists on the bucket', async function () {
@@ -420,6 +418,7 @@ describe('dumps', function () {
         fakeDump = omitBy(fakeDump, isNil) as DumpMetadata;
 
         const response = await requestSender.createDump(fakeDump);
+
         expect(response.status).toBe(httpStatusCodes.UNPROCESSABLE_ENTITY);
         expect(response.body).toHaveProperty(
           'message',
@@ -431,15 +430,15 @@ describe('dumps', function () {
     describe(`${SAD_PATH}`, function () {
       it('should return 500 status code if a database exception occurs', async function () {
         const errorMessage = 'An error occurred';
-        const insertMock = jest.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
+        const insertMock = vi.fn().mockRejectedValue(new QueryFailedError('', undefined, new Error(errorMessage)));
 
-        const mockRegisterOptions = getBaseRegisterOptions();
+        const mockRegisterOptions = await getBaseRegisterOptions();
         mockRegisterOptions.override.push({
           token: DUMP_METADATA_REPOSITORY_SYMBOL,
-          provider: { useValue: { findOne: jest.fn(), insert: insertMock } },
+          provider: { useValue: { findOne: vi.fn(), insert: insertMock } },
         });
 
-        const [, mockApp] = await getApp(mockRegisterOptions);
+        const [mockApp] = await getApp(mockRegisterOptions);
         mockRequestSender = new DumpMetadataRequestSender(mockApp);
 
         const response = await mockRequestSender.createDump(createFakeDumpMetadata());

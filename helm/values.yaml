@@ -4,6 +4,13 @@ global:
   metrics: {}
   tracing: {}
 
+mclabels:
+  component: backend
+  partOf: dump-server
+  owner: vector
+  prometheus:
+    enabled: true
+
 environment: development
 replicaCount: 1
 enabled: true
@@ -19,6 +26,12 @@ cloudProvider:
 image:
   repository: 'dump-server'
   tag: 'latest'
+
+configManagement:
+  offlineMode: true
+  # name: 'dump-server'
+  # version: 'latest'
+  # serverUrl: 'http://localhost:8080/api'
 
 env:
   port: 8080
@@ -46,7 +59,7 @@ dbConfig:
     secretName: secret-name
     certFileName: name.crt
     keyFileName: name.key
-    caFileName: name.crt
+    # caFileName: name.crt
 
 objectStorageConfig:
   host: s3Host

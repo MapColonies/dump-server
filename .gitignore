@@ -112,3 +112,13 @@ jest_html_reporters.html
 reports
 
 /**/local.json
+
+*.tar
+*.zip
+
+# husky runtime files
+.husky/_
+
+# vitest html reporter output
+html
+helm/local.yaml
