@@ -1,4 +1,3 @@
-// this import must be called before the first import of tsyringe
 import 'reflect-metadata';
 import { createServer } from 'node:http';
 import { createTerminus, type HealthCheck } from '@godaddy/terminus';
