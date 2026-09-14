@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/MapColonies/dump-server/compare/v2.0.0...v3.0.0) (2026-09-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* to biolerplate v2 (MAPCO 6292) ([#53](https://github.com/MapColonies/dump-server/issues/53))
+
+### Bug Fixes
+
+* add-release-please-manifest ([#69](https://github.com/MapColonies/dump-server/issues/69)) ([71e495f](https://github.com/MapColonies/dump-server/commit/71e495fa2a3f562c8ac2931a7f97e05f8cc3bd8a))
+* update-cli ([#72](https://github.com/MapColonies/dump-server/issues/72)) ([dab2ef1](https://github.com/MapColonies/dump-server/commit/dab2ef118e3f29fe0c36cf9377bd4f088e14afe7))
+* update-release-config ([5e9099b](https://github.com/MapColonies/dump-server/commit/5e9099b4f171346bb174078ac02b41e837d4f7f6))
+* update-release-config (MAPCO 6292) ([fa7416f](https://github.com/MapColonies/dump-server/commit/fa7416fbc2e32f47d4d35853cd81b5b14ef410fb))
+
+
+### Code Refactoring
+
+* to biolerplate v2 (MAPCO 6292) ([#53](https://github.com/MapColonies/dump-server/issues/53)) ([fbda491](https://github.com/MapColonies/dump-server/commit/fbda4919b533738d3627c16f3d85bc1a2f1e913b))
+
 ## [2.0.0](https://github.com/MapColonies/dump-server/compare/v1.2.0...v2.0.0) (2022-10-26)
 
 
