@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Check out TS Project Git repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Init Nodejs
         uses: MapColonies/shared-workflows/actions/init-npm@init-npm-v1
@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - name: Check out TS Project Git repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Init Nodejs
         uses: MapColonies/shared-workflows/actions/init-npm@init-npm-v1
@@ -89,7 +89,7 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Init Nodejs
         uses: MapColonies/shared-workflows/actions/init-npm@init-npm-v1
