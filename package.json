@@ -65,7 +65,7 @@
     "@commitlint/cli": "^20.4.1",
     "@commitlint/config-conventional": "^17.0.2",
     "@faker-js/faker": "^7.1.0",
-    "@map-colonies/eslint-config": "^8.0.0",
+    "@map-colonies/eslint-config": "^9.0.0",
     "@map-colonies/openapi-helpers": "^5.1.0",
     "@map-colonies/prettier-config": "^1.0.0",
     "@map-colonies/tsconfig": "^2.0.0",
