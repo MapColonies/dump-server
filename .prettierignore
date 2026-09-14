@@ -12,5 +12,6 @@ tsbuildconfig.json
 tsconfig.json
 node_modules
 *.html
+html
 helm
 reports

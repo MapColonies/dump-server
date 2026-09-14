@@ -1,17 +1,18 @@
-import config from 'config';
 import { createConnectionOptions } from './src/common/db';
-import { DbConfig } from './src/common/interfaces';
+import type { DbConfig } from './src/common/interfaces';
+import { initConfig, getConfig } from './src/common/config';
 
-const connectionOptions = config.get<DbConfig>('db');
+module.exports = (async () => {
+  await initConfig();
+  const dbConfig = getConfig().get('db');
 
-module.exports = [
-  {
-    ...createConnectionOptions(connectionOptions),
-    entities: ['src/**/DAL/typeorm/*.ts'],
-    migrationsTableName: 'custom_migration_table',
-    migrations: ['db/migrations/*.ts'],
-    cli: {
-      migrationsDir: 'db/migrations',
+  return [
+    {
+      ...createConnectionOptions(dbConfig),
+      entities: ['src/**/DAL/typeorm/*.ts'],
+      migrationsTableName: 'custom_migration_table',
+      migrations: ['db/migrations/*.ts'],
+      cli: { migrationsDir: 'db/migrations' },
     },
-  },
-];
+  ];
+})();

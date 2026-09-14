@@ -1,19 +1,18 @@
 import { faker } from '@faker-js/faker';
 import { omitBy, isNil } from 'lodash';
-import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '../../src/common/constants';
-import { IObjectStorageConfig } from '../../src/common/interfaces';
-import { isStringUndefinedOrEmpty } from '../../src/common/utils';
+import { BUCKET_NAME_MIN_LENGTH_LIMIT } from '@common/constants';
+import type { IObjectStorageConfig } from '@common/interfaces';
+import { isStringUndefinedOrEmpty } from '@common/utils';
 
-import { DumpMetadataResponse, DumpMetadata } from '../../src/dumpMetadata/models/dumpMetadata';
-import { DumpMetadataFilterQueryParams } from '../../src/dumpMetadata/models/dumpMetadataFilter';
-import { SortFilter } from '../../src/dumpMetadata/models/dumpMetadataFilter';
+import type { DumpMetadataResponse, DumpMetadata } from '@src/dumpMetadata/models/dumpMetadata';
+import type { DumpMetadataFilterQueryParams, SortFilter } from '@src/dumpMetadata/models/dumpMetadataFilter';
 
 interface IntegrationDumpMetadataResponse extends Omit<DumpMetadataResponse, 'timestamp'> {
   timestamp: string;
 }
 
 export const getMockObjectStorageConfig = (includeProjectId: boolean): IObjectStorageConfig => {
-  const objectStorageConfig: IObjectStorageConfig = { protocol: 'http', host: 'some_storage_host', port: '9000' };
+  const objectStorageConfig: IObjectStorageConfig = { protocol: 'http', host: 'some_storage_host', port: 9000 };
   if (includeProjectId) {
     objectStorageConfig.projectId = 'some_project_id';
   }

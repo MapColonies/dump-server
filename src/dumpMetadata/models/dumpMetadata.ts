@@ -11,4 +11,4 @@ export interface DumpMetadataResponse extends Omit<DumpMetadata, 'bucket'> {
   url: string;
 }
 
-export interface DumpMetadataCreation extends Omit<DumpMetadata, 'id'> {}
+export type DumpMetadataCreation = Omit<DumpMetadata, 'id'>;

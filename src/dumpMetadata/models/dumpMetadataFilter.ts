@@ -1,6 +1,6 @@
-import { FindManyOptions } from 'typeorm';
-import { buildTimestampRangeFilter } from '../../common/db/util';
-import { DumpMetadata } from '../DAL/typeorm/dumpMetadata';
+import type { FindManyOptions } from 'typeorm';
+import { buildTimestampRangeFilter } from '@common/db/util';
+import type { DumpMetadata } from '../DAL/typeorm/dumpMetadata';
 
 export type SortFilter = 'asc' | 'desc';
 
