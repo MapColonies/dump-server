@@ -1,4 +1,5 @@
 **/myvalues.yaml
+**/local.values.yaml
 **/Chart.lock
 
 # Logs

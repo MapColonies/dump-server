@@ -11,6 +11,7 @@ metadata:
 data:
   DB_HOST: {{ .Values.dbConfig.host }}
   DB_NAME: {{ .Values.dbConfig.database }}
+  DB_SCHEMA: {{ .Values.dbConfig.schema }}
   DB_CERT_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.certFileName }}
   DB_CA_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.caFileName }}
   DB_KEY_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.keyFileName }}
